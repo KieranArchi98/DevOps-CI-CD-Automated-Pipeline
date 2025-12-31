@@ -4,6 +4,7 @@ from typing import List, Optional
 from bson import ObjectId
 from datetime import datetime
 
+
 class ConversationService:
     @staticmethod
     async def create_conversation(user_id: str, title: str) -> Conversation:
@@ -12,7 +13,7 @@ class ConversationService:
             "title": title,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
-            "messages": []
+            "messages": [],
         }
         result = await db.conversations.insert_one(doc)
         doc["_id"] = str(result.inserted_id)
@@ -47,7 +48,7 @@ class ConversationService:
         message_dict["_id"] = str(result.inserted_id)
         await db.conversations.update_one(
             {"_id": ObjectId(conversation_id)},
-            {"$set": {"updated_at": datetime.utcnow()}}
+            {"$set": {"updated_at": datetime.utcnow()}},
         )
         print("[DEBUG] Returning Message:", message_dict)
         return Message(**message_dict)
@@ -65,12 +66,12 @@ class ConversationService:
     async def delete_conversation(conversation_id: str) -> bool:
         result = await db.conversations.delete_one({"_id": ObjectId(conversation_id)})
         await db.messages.delete_many({"conversation_id": conversation_id})
-        return result.deleted_count > 0 
+        return result.deleted_count > 0
 
     @staticmethod
     async def rename_conversation(conversation_id: str, new_title: str) -> bool:
         result = await db.conversations.update_one(
             {"_id": ObjectId(conversation_id)},
-            {"$set": {"title": new_title, "updated_at": datetime.utcnow()}}
+            {"$set": {"title": new_title, "updated_at": datetime.utcnow()}},
         )
-        return result.modified_count > 0 
+        return result.modified_count > 0

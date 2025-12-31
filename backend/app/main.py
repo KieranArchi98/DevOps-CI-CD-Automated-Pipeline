@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.api_router import api_router
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +17,7 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api")
 
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok"} 
+    return {"status": "ok"}

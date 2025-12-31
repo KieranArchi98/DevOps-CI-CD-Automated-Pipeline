@@ -1,16 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from ..services.conversation_service import ConversationService
 from ..services.llm_service import LLMService
 from ..schemas.conversation import Message
 from datetime import datetime
 
+
 router = APIRouter(prefix="/chat", tags=["chat"])
+
 
 class ChatRequest(BaseModel):
     conversation_id: str
     user_id: str
     content: str
+
 
 @router.post("/")
 async def chat(data: ChatRequest):
@@ -45,4 +48,4 @@ async def chat(data: ChatRequest):
     )
     await ConversationService.add_message(data.conversation_id, assistant_msg)
 
-    return {"response": assistant_content} 
+    return {"response": assistant_content}

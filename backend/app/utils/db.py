@@ -5,4 +5,4 @@ MONGO_URI = 'mongodb+srv://veximity:432e1adcbf@cluster0.oail340.mongodb.net/?app
 DB_NAME = 'chatbot'
 
 client = AsyncIOMotorClient(MONGO_URI)
-db = client[DB_NAME] 
+db = client[DB_NAME]
