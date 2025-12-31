@@ -1,5 +1,10 @@
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+  packages: write
+
+
 on:
   push:
     branches:
@@ -26,28 +31,49 @@ jobs:
           node-version: '18'
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      # Backend build
-      - name: Build Backend Image
+      # Backend build test
+      - name: Build Backend Image (Test)
         run: docker build -t llm-chatbot-backend:ci ./backend
 
-      # Frontend build
-      - name: Build Frontend Image
+      # Frontend build test
+      - name: Build Frontend Image (Test)
         run: docker build -t llm-chatbot-frontend:ci ./frontend
 
-      # Optional: Push images to registry
-      # - name: Login to GitHub Container Registry
-      #   uses: docker/login-action@v2
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
-      #
-      # - name: Push Backend Image
-      #   run: docker tag llm-chatbot-backend:ci ghcr.io/${{ github.repository }}/backend:latest
-      # - run: docker push ghcr.io/${{ github.repository }}/backend:latest
-      #
-      # - name: Push Frontend Image
-      #   run: docker tag llm-chatbot-frontend:ci ghcr.io/${{ github.repository }}/frontend:latest
-      # - run: docker push ghcr.io/${{ github.repository }}/frontend:latest
+  build-and-push:
+    needs: build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-backend:latest
+            ghcr.io/${{ github.repository }}-backend:${{ github.sha }}
+
+      - name: Build and push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-frontend:latest
+            ghcr.io/${{ github.repository }}-frontend:${{ github.sha }}
+
