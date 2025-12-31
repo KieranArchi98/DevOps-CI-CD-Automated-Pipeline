@@ -6,3 +6,4 @@ DB_NAME = 'chatbot'
 
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
+

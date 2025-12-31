@@ -49,3 +49,4 @@ async def chat(data: ChatRequest):
     await ConversationService.add_message(data.conversation_id, assistant_msg)
 
     return {"response": assistant_content}
+

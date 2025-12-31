@@ -61,3 +61,4 @@ async def rename_conversation(conversation_id: str, data: ConversationRenameRequ
             status_code=404, detail="Conversation not found or not updated"
         )
     return {"success": True}
+

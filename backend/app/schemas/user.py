@@ -8,3 +8,4 @@ class User(BaseModel):
     email: EmailStr
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
