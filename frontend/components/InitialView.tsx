@@ -7,13 +7,18 @@ import { Menu, Paperclip, Mic, Send, Earth, Notebook, Brain, Cpu, Eye } from 'lu
 interface InitialViewProps {
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
+  searchInputProps?: Omit<
+    React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+    'onChange' | 'value' | 'onInput'
+  >; // omit potentially conflicting props
 }
 
-export default function InitialView({ onSendMessage, onToggleSidebar }: InitialViewProps) {
+
+
+export default function InitialView({ onSendMessage, onToggleSidebar, searchInputProps }: InitialViewProps) {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    // Entrance animations
     gsap.fromTo(
       '.hero-element',
       { opacity: 0, y: 30, scale: 0.9 },
@@ -26,7 +31,6 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
       { opacity: 1, y: 0, rotateX: 0, duration: 0.8, stagger: 0.1, delay: 0.5, ease: 'power2.out' }
     );
 
-    // Floating animation for logo
     gsap.to('.floating-logo', {
       y: -5,
       duration: 3,
@@ -35,7 +39,6 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
       ease: 'sine.inOut',
     });
 
-    // Pulsing glow effect
     gsap.to('.pulse-glow', {
       scale: 1.05,
       opacity: 0.8,
@@ -61,32 +64,16 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
   };
 
   const suggestions = [
-    {
-      text: 'Explore the boundaries of digital consciousness',
-      icon: Brain,
-    },
-    {
-      text: 'Generate ethereal poetry from quantum thoughts',
-      icon: Notebook,
-    },
-    {
-      text: 'Analyze patterns in the digital mist',
-      icon: Cpu,
-    },
-    {
-      text: 'Create visions from algorithmic dreams',
-      icon: Eye,
-    },
+    { text: 'Explore the boundaries of digital consciousness', icon: Brain },
+    { text: 'Generate ethereal poetry from quantum thoughts', icon: Notebook },
+    { text: 'Analyze patterns in the digital mist', icon: Cpu },
+    { text: 'Create visions from algorithmic dreams', icon: Eye },
   ];
 
   return (
     <div className="flex-1 flex flex-col relative">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-mist lg:hidden">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors"
-        >
+        <button onClick={onToggleSidebar} className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors">
           <Menu className="w-5 h-5 text-fog" />
         </button>
         <div className="w-8 h-8 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/20 rounded-lg flex items-center justify-center border border-pale-cyan/20">
@@ -95,7 +82,6 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
         <div className="w-9" />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 max-w-4xl mx-auto w-full">
         {/* Hero Section */}
         <div className="text-center mb-12 hero-element">
@@ -148,21 +134,22 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
 
             <textarea
               value={message}
-              onChange={e => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)} // your controlled state
               onKeyDown={handleKeyDown}
               placeholder="And the word was..."
               className="flex-1 resize-none border-none outline-none py-3 bg-transparent text-mist placeholder-fog max-h-32 min-h-[24px] font-light tracking-wide"
               rows={1}
-              style={{
-                height: 'auto',
-                minHeight: '24px',
-              }}
+              style={{ height: 'auto', minHeight: '24px' }}
               onInput={e => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
                 target.style.height = target.scrollHeight + 'px';
               }}
+              {...searchInputProps} // will never include onChange/value
             />
+
+
+
 
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Mic className="w-5 h-5" />

@@ -245,3 +245,5 @@ function ChatArea({
     </div>
   );
 }
+
+export default ChatArea;
