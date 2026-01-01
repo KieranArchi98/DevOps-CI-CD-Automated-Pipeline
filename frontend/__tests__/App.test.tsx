@@ -15,7 +15,7 @@ describe('Main Page', () => {
 
   it('validates input exists', () => {
     render(<Page />);
-    const input = screen.getByRole('textbox');
-    expect(input).toBeInTheDocument();
+    const inputs = screen.getAllByRole('textbox');
+    expect(inputs.length).toBeGreaterThan(0);
   });
 });

@@ -23,9 +23,10 @@ interface ChatAreaProps {
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
   loading: boolean;
+  messageBoxProps?: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 }
 
-export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading }: ChatAreaProps) {
+export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading, messageBoxProps }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = React.useState('');
 
@@ -217,6 +218,7 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
                 target.style.height = target.scrollHeight + 'px';
               }}
               disabled={loading}
+              {...messageBoxProps}
             />
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Mic className="w-5 h-5" />

@@ -27,7 +27,6 @@ export default function Home() {
   const [msgLoading, setMsgLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load conversations on mount
   useEffect(() => {
     console.log('[INIT] Mounting Home component, fetching conversations...');
     fetchConversations();
@@ -38,7 +37,6 @@ export default function Home() {
     console.log('[API] Fetching conversations for user:', DUMMY_USER_ID);
     try {
       const data = await listConversations(DUMMY_USER_ID);
-      // Ensure each conversation has an id field
       const mapped = data.map((conv: any) => ({
         ...conv,
         id: conv.id || conv._id,
@@ -81,7 +79,6 @@ export default function Home() {
     setLoading(true);
     console.log('[UI] Creating new conversation...');
     try {
-      // Assign a unique default title
       const defaultTitle = `Conversation ${conversations.length + 1}`;
       const conv = await createConversation(DUMMY_USER_ID, defaultTitle);
       console.log('[API] New conversation created:', conv);
@@ -120,128 +117,107 @@ export default function Home() {
     console.log('[UI] Sending message:', content);
     if (!currentConv) {
       console.log('[UI] No current conversation, creating new chat first.');
-      // Create a new conversation and send the message after it's ready
       const defaultTitle = `Conversation ${conversations.length + 1}`;
       const conv = await createConversation(DUMMY_USER_ID, defaultTitle);
       setCurrentConv({ ...conv, id: conv.id || conv._id });
       setIsInitialView(false);
       setMsgLoading(true);
-      let sent = false;
       try {
         await chatWithLLM(conv.id || conv._id, DUMMY_USER_ID, content);
-        sent = true;
-        console.log('[API] Message sent to LLM. Fetching updated messages...');
         const msgs = await getMessages(conv.id || conv._id);
-        console.log('[API] Updated messages:', msgs);
         setMessages(msgs);
       } catch (e: any) {
         console.error('[ERROR] Send message failed:', e);
         setError(e.message);
-        // Delete the empty conversation if message send failed
         await deleteConversation(conv.id || conv._id);
         await fetchConversations();
         setCurrentConv(null);
       } finally {
         setMsgLoading(false);
-        console.log('[STATE] msgLoading set to false after handleSendMessage');
       }
       return;
     }
     setMsgLoading(true);
     try {
       await chatWithLLM(currentConv.id || currentConv._id, DUMMY_USER_ID, content);
-      console.log('[API] Message sent to LLM. Fetching updated messages...');
-      // Refetch messages after LLM response
       const msgs = await getMessages(currentConv.id || currentConv._id);
-      console.log('[API] Updated messages:', msgs);
       setMessages(msgs);
     } catch (e: any) {
       console.error('[ERROR] Send message failed:', e);
       setError(e.message);
     } finally {
       setMsgLoading(false);
-      console.log('[STATE] msgLoading set to false after handleSendMessage');
     }
   }
 
   async function handleInitialMessage(content: string) {
-    console.log('[UI] Sending initial message:', content);
     setIsInitialView(false);
-    // Create a new conversation and send the message after it's ready
     const defaultTitle = `Conversation ${conversations.length + 1}`;
     const conv = await createConversation(DUMMY_USER_ID, defaultTitle);
     setCurrentConv({ ...conv, id: conv.id || conv._id });
-    setIsInitialView(false);
     setMsgLoading(true);
-    let sent = false;
     try {
       await chatWithLLM(conv.id || conv._id, DUMMY_USER_ID, content);
-      sent = true;
-      console.log('[API] Message sent to LLM. Fetching updated messages...');
       const msgs = await getMessages(conv.id || conv._id);
-      console.log('[API] Updated messages:', msgs);
       setMessages(msgs);
     } catch (e: any) {
       console.error('[ERROR] Send message failed:', e);
       setError(e.message);
-      // Delete the empty conversation if message send failed
       await deleteConversation(conv.id || conv._id);
       await fetchConversations();
       setCurrentConv(null);
     } finally {
       setMsgLoading(false);
-      console.log('[STATE] msgLoading set to false after handleInitialMessage');
     }
   }
 
   return (
-    <div className="flex h-screen relative overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        chats={conversations}
-        currentChatId={currentConv?.id || currentConv?._id || null}
-        onSelectChat={chatId => {
-          const conv = conversations.find(c => c.id === chatId || c._id === chatId);
-          if (conv) {
-            handleSelectConversation(conv);
-          } else {
-            console.error('[ERROR] Tried to select an undefined or invalid conversation:', chatId);
-            setError('Invalid conversation selected.');
-          }
-        }}
-        onNewChat={handleNewChat}
-        onDeleteChat={handleDeleteChat}
-        onRenameChat={handleRenameChat}
-        onShowWelcome={() => {
-          setIsInitialView(true);
-          setCurrentConv(null);
-          setMessages([]);
-        }}
-        disableInteraction={loading || msgLoading}
-      />
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col relative z-10">
-        {isInitialView ? (
-          <InitialView
-            onSendMessage={handleInitialMessage}
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-          />
-        ) : (
-          <ChatArea
-            chat={currentConv ? { ...currentConv, messages } : undefined}
-            onSendMessage={handleSendMessage}
-            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-            loading={msgLoading}
-          />
-        )}
-        {error && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow">
-            {error}
-          </div>
-        )}
+    <main className="flex-1" role="main">
+      <div className="flex h-screen relative overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          chats={conversations}
+          currentChatId={currentConv?.id || currentConv?._id || null}
+          onSelectChat={chatId => {
+            const conv = conversations.find(c => c.id === chatId || c._id === chatId);
+            if (conv) handleSelectConversation(conv);
+          }}
+          onNewChat={handleNewChat}
+          onDeleteChat={handleDeleteChat}
+          onRenameChat={handleRenameChat}
+          onShowWelcome={() => {
+            setIsInitialView(true);
+            setCurrentConv(null);
+            setMessages([]);
+          }}
+          disableInteraction={loading || msgLoading}
+        />
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col relative z-10">
+          {isInitialView ? (
+            <InitialView
+              onSendMessage={handleInitialMessage}
+              onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+              searchInputProps={{ 'aria-label': 'search conversations' }}
+            />
+          ) : (
+            <ChatArea
+              chat={currentConv ? { ...currentConv, messages } : undefined}
+              onSendMessage={handleSendMessage}
+              onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+              loading={msgLoading}
+              messageBoxProps={{ 'aria-label': 'message input' }}
+            />
+          )}
+          {error && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow">
+              {error}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
