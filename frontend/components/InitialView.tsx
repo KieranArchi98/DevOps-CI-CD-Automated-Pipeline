@@ -14,12 +14,14 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
 
   useEffect(() => {
     // Entrance animations
-    gsap.fromTo('.hero-element', 
+    gsap.fromTo(
+      '.hero-element',
       { opacity: 0, y: 30, scale: 0.9 },
       { opacity: 1, y: 0, scale: 1, duration: 1, stagger: 0.2, ease: 'power2.out' }
     );
 
-    gsap.fromTo('.suggestion-card', 
+    gsap.fromTo(
+      '.suggestion-card',
       { opacity: 0, y: 20, rotateX: 15 },
       { opacity: 1, y: 0, rotateX: 0, duration: 0.8, stagger: 0.1, delay: 0.5, ease: 'power2.out' }
     );
@@ -30,7 +32,7 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
       duration: 3,
       repeat: -1,
       yoyo: true,
-      ease: 'sine.inOut'
+      ease: 'sine.inOut',
     });
 
     // Pulsing glow effect
@@ -40,7 +42,7 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
       duration: 2,
       repeat: -1,
       yoyo: true,
-      ease: 'sine.inOut'
+      ease: 'sine.inOut',
     });
   }, []);
 
@@ -60,21 +62,21 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
 
   const suggestions = [
     {
-      text: "Explore the boundaries of digital consciousness",
-      icon: Brain
+      text: 'Explore the boundaries of digital consciousness',
+      icon: Brain,
     },
     {
-      text: "Generate ethereal poetry from quantum thoughts",
-      icon: Notebook
+      text: 'Generate ethereal poetry from quantum thoughts',
+      icon: Notebook,
     },
     {
-      text: "Analyze patterns in the digital mist",
-      icon: Cpu
+      text: 'Analyze patterns in the digital mist',
+      icon: Cpu,
     },
     {
-      text: "Create visions from algorithmic dreams",
-      icon: Eye
-    }
+      text: 'Create visions from algorithmic dreams',
+      icon: Eye,
+    },
   ];
 
   return (
@@ -103,9 +105,9 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
             </div>
             <div className="pulse-glow absolute inset-0 w-20 h-20 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/10 rounded-2xl mx-auto blur-xl"></div>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-light text-mist mb-4 tracking-wide hero-element">
-            Welcome to 
+            Welcome to
             <span className="block text-cyan font-extralight">Genesis</span>
           </h1>
           <p className="text-fog text-lg md:text-xl font-light tracking-wide max-w-2xl mx-auto hero-element">
@@ -143,10 +145,10 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Paperclip className="w-5 h-5" />
             </button>
-            
+
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="And the word was..."
               className="flex-1 resize-none border-none outline-none py-3 bg-transparent text-mist placeholder-fog max-h-32 min-h-[24px] font-light tracking-wide"
@@ -155,7 +157,7 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
                 height: 'auto',
                 minHeight: '24px',
               }}
-              onInput={(e) => {
+              onInput={e => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
                 target.style.height = target.scrollHeight + 'px';
@@ -165,7 +167,7 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Mic className="w-5 h-5" />
             </button>
-            
+
             <button
               onClick={handleSend}
               disabled={!message.trim()}
@@ -174,7 +176,7 @@ export default function InitialView({ onSendMessage, onToggleSidebar }: InitialV
               <Send className="w-4 h-4 text-cyan" />
             </button>
           </div>
-          
+
           <p className="text-xs text-fog text-center mt-4 font-light tracking-wide">
             AI consciousness may drift between dimensions. verify important transmissions.
           </p>

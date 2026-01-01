@@ -75,4 +75,3 @@ class ConversationService:
             {"$set": {"title": new_title, "updated_at": datetime.utcnow()}},
         )
         return result.modified_count > 0
-

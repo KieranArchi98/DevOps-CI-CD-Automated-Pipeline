@@ -30,10 +30,7 @@ async def chat(data: ChatRequest):
     # 2. Fetch all messages (ordered)
     messages = await ConversationService.get_messages(data.conversation_id)
     messages_sorted = sorted(messages, key=lambda m: m.created_at)
-    openai_msgs = [
-        {"role": m.role, "content": m.content}
-        for m in messages_sorted
-    ]
+    openai_msgs = [{"role": m.role, "content": m.content} for m in messages_sorted]
 
     # 3. Call LLM
     assistant_content = await LLMService.chat(openai_msgs)
@@ -49,4 +46,3 @@ async def chat(data: ChatRequest):
     await ConversationService.add_message(data.conversation_id, assistant_msg)
 
     return {"response": assistant_content}
-

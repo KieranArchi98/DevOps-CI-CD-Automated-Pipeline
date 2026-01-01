@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   BookOpen,
   MoreHorizontal,
   Share,
@@ -14,7 +14,7 @@ import {
   Menu,
   X,
   Earth,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { renameConversation, deleteConversation as apiDeleteConversation } from '../services/api';
 import { createPortal } from 'react-dom';
@@ -42,19 +42,22 @@ export default function Sidebar({
   onDeleteChat,
   onRenameChat,
   onShowWelcome,
-  disableInteraction = false
+  disableInteraction = false,
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [editingChat, setEditingChat] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [dropdownPosition, setDropdownPosition] = useState<{top: number, left: number} | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(
+    null
+  );
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      gsap.fromTo('.sidebar-item', 
+      gsap.fromTo(
+        '.sidebar-item',
         { opacity: 0, x: -20 },
         { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' }
       );
@@ -64,10 +67,7 @@ export default function Sidebar({
   useEffect(() => {
     if (!activeDropdown) return;
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setActiveDropdown(null);
         setDropdownPosition(null);
       }
@@ -113,7 +113,7 @@ export default function Sidebar({
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'today';
     if (days === 1) return 'yesterday';
     if (days < 7) return `${days} days ago`;
@@ -124,20 +124,22 @@ export default function Sidebar({
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={onToggle}
         />
       )}
-      
+
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         fixed lg:relative lg:translate-x-0
         w-[280px] h-full sidebar-mist
         transition-transform duration-500 ease-out z-50
         flex flex-col
-      `}>
+      `}
+      >
         {/* Header */}
         <div className="p-4 border-b border-mist">
           <div className="flex items-center justify-between mb-4 sidebar-item">
@@ -154,7 +156,7 @@ export default function Sidebar({
               <X className="w-4 h-4 text-fog" />
             </button>
           </div>
-          
+
           <button
             onClick={onNewChat}
             className="w-full vapor-button rounded-xl px-4 py-3 flex items-center gap-3 text-sm font-light lowercase tracking-wide sidebar-item hover-glow"
@@ -172,7 +174,7 @@ export default function Sidebar({
               type="text"
               placeholder="search conversations..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-3 mist-input rounded-xl text-sm font-light lowercase tracking-wide"
             />
           </div>
@@ -185,7 +187,9 @@ export default function Sidebar({
             className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-mist-medium/30 transition-colors sidebar-item"
           >
             <BookOpen className="w-4 h-4 text-fog" />
-            <span className="text-sm text-fog font-light lowercase tracking-wide">knowledge base</span>
+            <span className="text-sm text-fog font-light lowercase tracking-wide">
+              knowledge base
+            </span>
           </button>
         </div>
 
@@ -195,7 +199,7 @@ export default function Sidebar({
             <h3 className="text-xs font-light text-fog uppercase tracking-widest mb-4 sidebar-item">
               conversations
             </h3>
-            
+
             {filteredChats.length === 0 ? (
               <div className="text-center py-12 sidebar-item">
                 <div className="w-16 h-16 bg-gradient-to-br from-pale-cyan/10 to-transparent rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -226,9 +230,9 @@ export default function Sidebar({
                           <input
                             type="text"
                             value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
+                            onChange={e => setEditTitle(e.target.value)}
                             onBlur={() => saveRename(chat.id)}
-                            onKeyDown={(e) => {
+                            onKeyDown={e => {
                               if (e.key === 'Enter') saveRename(chat.id);
                               if (e.key === 'Escape') cancelRename();
                             }}
@@ -251,8 +255,8 @@ export default function Sidebar({
                       {/* Dropdown Menu */}
                       <div className="absolute top-3 right-3">
                         <button
-                          ref={el => buttonRefs.current[index] = el}
-                          onClick={(e) => {
+                          ref={el => (buttonRefs.current[index] = el)}
+                          onClick={e => {
                             e.stopPropagation();
                             if (activeDropdown === chat.id) {
                               setActiveDropdown(null);
@@ -263,7 +267,7 @@ export default function Sidebar({
                               if (rect) {
                                 setDropdownPosition({
                                   top: rect.bottom + window.scrollY + 4,
-                                  left: rect.left + window.scrollX - 160 + rect.width // 160 = dropdown width
+                                  left: rect.left + window.scrollX - 160 + rect.width, // 160 = dropdown width
                                 });
                               }
                             }
@@ -272,7 +276,8 @@ export default function Sidebar({
                         >
                           <MoreHorizontal className="w-4 h-4 text-fog" />
                         </button>
-                        {activeDropdown === chat.id && dropdownPosition && (
+                        {activeDropdown === chat.id &&
+                          dropdownPosition &&
                           createPortal(
                             <div
                               ref={dropdownRef}
@@ -323,8 +328,7 @@ export default function Sidebar({
                               </button>
                             </div>,
                             document.body
-                          )
-                        )}
+                          )}
                       </div>
                     </div>
                   );

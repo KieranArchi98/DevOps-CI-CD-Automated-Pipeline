@@ -51,7 +51,10 @@ export async function getConversation(conversation_id: string) {
 }
 
 export async function addMessage(conversation_id: string, message: any) {
-  console.log('[API] addMessage: Sending POST to /api/conversations/' + conversation_id + '/messages', message);
+  console.log(
+    '[API] addMessage: Sending POST to /api/conversations/' + conversation_id + '/messages',
+    message
+  );
   const res = await fetch(`http://localhost:8000/api/conversations/${conversation_id}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -67,7 +70,11 @@ export async function addMessage(conversation_id: string, message: any) {
 }
 
 export async function chatWithLLM(conversation_id: string, user_id: string, content: string) {
-  console.log('[API] chatWithLLM: Sending POST to /api/chat/', { conversation_id, user_id, content });
+  console.log('[API] chatWithLLM: Sending POST to /api/chat/', {
+    conversation_id,
+    user_id,
+    content,
+  });
   const res = await fetch('http://localhost:8000/api/chat/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -83,7 +90,9 @@ export async function chatWithLLM(conversation_id: string, user_id: string, cont
 }
 
 export async function getMessages(conversation_id: string) {
-  console.log('[API] getMessages: Sending GET to /api/conversations/' + conversation_id + '/messages');
+  console.log(
+    '[API] getMessages: Sending GET to /api/conversations/' + conversation_id + '/messages'
+  );
   const res = await fetch(`http://localhost:8000/api/conversations/${conversation_id}/messages`);
   if (!res.ok) {
     console.error('[API] getMessages: Failed', res.status, res.statusText);
@@ -97,7 +106,9 @@ export async function getMessages(conversation_id: string) {
     timestamp: msg.created_at,
   }));
   // Sort by created_at
-  const sorted = mapped.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sorted = mapped.sort(
+    (a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
   console.log('[API] getMessages: Success', sorted);
   return sorted;
 }
@@ -130,4 +141,4 @@ export async function renameConversation(conversation_id: string, title: string)
   const data = await res.json();
   console.log('[API] renameConversation: Success', data);
   return data;
-} 
+}

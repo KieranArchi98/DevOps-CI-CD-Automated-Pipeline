@@ -13,13 +13,13 @@ spec:
         app: llm-backend
     spec:
       containers:
-      - name: llm-backend
-        image: llm-chatbot-backend:local
-        ports:
-        - containerPort: 8000
-        env:
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: openai-key
-              key: key
+        - name: llm-backend
+          image: llm-chatbot-backend:local
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-key
+                  key: key

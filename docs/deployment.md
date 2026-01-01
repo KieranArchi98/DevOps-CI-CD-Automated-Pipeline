@@ -10,3 +10,4 @@ Genesis AI Chatbot can be deployed **locally** or in a **production-like Kuberne
 
 ```bash
 docker-compose up --build
+```

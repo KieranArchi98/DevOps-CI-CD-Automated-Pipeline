@@ -111,9 +111,9 @@ export default function Home() {
   async function handleRenameChat(chatId: string, newTitle: string) {
     console.log('[UI] Renaming chat:', chatId, 'to', newTitle);
     await fetchConversations();
-    setConversations(prev => prev.map(c =>
-      (c.id === chatId || c._id === chatId) ? { ...c, title: newTitle } : c
-    ));
+    setConversations(prev =>
+      prev.map(c => (c.id === chatId || c._id === chatId ? { ...c, title: newTitle } : c))
+    );
   }
 
   async function handleSendMessage(content: string) {
@@ -202,7 +202,7 @@ export default function Home() {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         chats={conversations}
         currentChatId={currentConv?.id || currentConv?._id || null}
-        onSelectChat={(chatId) => {
+        onSelectChat={chatId => {
           const conv = conversations.find(c => c.id === chatId || c._id === chatId);
           if (conv) {
             handleSelectConversation(conv);
@@ -236,7 +236,11 @@ export default function Home() {
             loading={msgLoading}
           />
         )}
-        {error && <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow">{error}</div>}
+        {error && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 px-4 py-2 rounded shadow">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

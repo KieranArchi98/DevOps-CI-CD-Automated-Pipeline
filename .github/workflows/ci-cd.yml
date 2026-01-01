@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Linting Tools
         run: pip install flake8 black
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Dependencies
         run: |
@@ -72,12 +72,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -118,22 +118,22 @@ jobs:
       - name: Scan Backend Image for Vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'genesis-backend:ci'
-          format: 'table'
-          exit-code: '1'
+          image-ref: "genesis-backend:ci"
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'HIGH,CRITICAL'
+          vuln-type: "os,library"
+          severity: "HIGH,CRITICAL"
 
       - name: Scan Frontend Image for Vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'genesis-frontend:ci'
-          format: 'table'
-          exit-code: '1'
+          image-ref: "genesis-frontend:ci"
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'HIGH,CRITICAL'
+          vuln-type: "os,library"
+          severity: "HIGH,CRITICAL"
 
   build-and-push:
     needs: build

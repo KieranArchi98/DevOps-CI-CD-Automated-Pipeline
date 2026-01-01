@@ -1,4 +1,3 @@
-
 ---
 
 # **2️⃣ /docs/architecture.md**
@@ -36,13 +35,14 @@ Genesis AI Chatbot is designed as a **modular full-stack application**:
 
 ## Data Flow
 
-1. User interacts with frontend (React SPA)  
-2. Frontend calls backend API (`/api/chat`)  
-3. Backend validates request and calls OpenAI ChatGPT API  
-4. Response is returned to frontend  
+1. User interacts with frontend (React SPA)
+2. Frontend calls backend API (`/api/chat`)
+3. Backend validates request and calls OpenAI ChatGPT API
+4. Response is returned to frontend
 5. Frontend renders the response in chat interface
 
 ## Networking
 
-- Local Docker Compose: frontend ↔ backend via service names  
-- Kubernetes: frontend ↔ backend via ClusterIP services  
+- Local Docker Compose: frontend ↔ backend via service names
+- Kubernetes: frontend ↔ backend via ClusterIP services
+```

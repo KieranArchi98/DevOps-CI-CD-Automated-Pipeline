@@ -25,4 +25,3 @@ class LLMService:
         except Exception as e:
             print(f"[LLMService] OpenAI API error: {e}")
             return "[Error: LLM service unavailable]"
-

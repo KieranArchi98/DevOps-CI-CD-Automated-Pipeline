@@ -41,7 +41,8 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
     // Animate new messages
     const messages = document.querySelectorAll('.message-item:last-child');
     if (messages.length > 0) {
-      gsap.fromTo(messages, 
+      gsap.fromTo(
+        messages,
         { opacity: 0, y: 20, scale: 0.95 },
         { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: 'power2.out' }
       );
@@ -100,72 +101,76 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
                 <div className="w-16 h-16 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-pale-cyan/20">
                   <Zap className="w-8 h-8 text-cyan" />
                 </div>
-                <p className="text-fog font-light lowercase tracking-wide">begin the conversation</p>
+                <p className="text-fog font-light lowercase tracking-wide">
+                  begin the conversation
+                </p>
               </div>
             </div>
           )
         ) : (
           <div className="max-w-4xl mx-auto px-6 py-8">
-            {chat?.messages.filter(msg => msg && msg.id).map((msg, index) => (
-              <div key={msg.id} className="mb-8 message-item">
-                {msg.role === 'assistant' ? (
-                  // AI Message
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-pale-cyan/20">
-                      <Zap className="w-5 h-5 text-cyan" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="message-bubble-ai rounded-2xl p-6">
-                        <p className="text-mist leading-relaxed whitespace-pre-wrap font-light tracking-wide">
-                          {msg.content}
-                        </p>
+            {chat?.messages
+              .filter(msg => msg && msg.id)
+              .map((msg, index) => (
+                <div key={msg.id} className="mb-8 message-item">
+                  {msg.role === 'assistant' ? (
+                    // AI Message
+                    <div className="flex gap-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-pale-cyan/20">
+                        <Zap className="w-5 h-5 text-cyan" />
                       </div>
-                      {/* Message Actions */}
-                      <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => copyToClipboard(msg.content)}
-                          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
-                          title="copy"
-                        >
-                          <Copy className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
-                        </button>
-                        <button
-                          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
-                          title="good response"
-                        >
-                          <ThumbsUp className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
-                        </button>
-                        <button
-                          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
-                          title="poor response"
-                        >
-                          <ThumbsDown className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
-                        </button>
-                        <span className="text-xs text-fog ml-3 font-light lowercase">
-                          {formatTime(msg.timestamp)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  // User Message
-                  <div className="flex justify-end">
-                    <div className="max-w-[75%]">
-                      <div className="message-bubble-user rounded-2xl px-6 py-4">
-                        <p className="text-mist leading-relaxed whitespace-pre-wrap font-light tracking-wide">
-                          {msg.content}
-                        </p>
-                      </div>
-                      <div className="text-right mt-2">
-                        <span className="text-xs text-fog font-light lowercase">
-                          {formatTime(msg.timestamp)}
-                        </span>
+                      <div className="flex-1">
+                        <div className="message-bubble-ai rounded-2xl p-6">
+                          <p className="text-mist leading-relaxed whitespace-pre-wrap font-light tracking-wide">
+                            {msg.content}
+                          </p>
+                        </div>
+                        {/* Message Actions */}
+                        <div className="flex items-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => copyToClipboard(msg.content)}
+                            className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
+                            title="copy"
+                          >
+                            <Copy className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
+                          </button>
+                          <button
+                            className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
+                            title="good response"
+                          >
+                            <ThumbsUp className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
+                          </button>
+                          <button
+                            className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors hover-glow"
+                            title="poor response"
+                          >
+                            <ThumbsDown className="w-4 h-4 text-fog hover:text-cyan transition-colors" />
+                          </button>
+                          <span className="text-xs text-fog ml-3 font-light lowercase">
+                            {formatTime(msg.timestamp)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  ) : (
+                    // User Message
+                    <div className="flex justify-end">
+                      <div className="max-w-[75%]">
+                        <div className="message-bubble-user rounded-2xl px-6 py-4">
+                          <p className="text-mist leading-relaxed whitespace-pre-wrap font-light tracking-wide">
+                            {msg.content}
+                          </p>
+                        </div>
+                        <div className="text-right mt-2">
+                          <span className="text-xs text-fog font-light lowercase">
+                            {formatTime(msg.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             {/* Loading indicator */}
             {chat && Array.isArray(chat.messages) && chat.messages.length > 0 && loading && (
               <div className="flex gap-4 mb-8 message-item">
@@ -176,7 +181,9 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
                   <div className="message-bubble-ai rounded-2xl p-6">
                     <div className="flex items-center gap-3">
                       <div className="loading-swirl"></div>
-                      <span className="text-fog font-light lowercase tracking-wide">consciousness emerging...</span>
+                      <span className="text-fog font-light lowercase tracking-wide">
+                        consciousness emerging...
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -195,7 +202,7 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
             </button>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Continue the dialogue..."
               className="flex-1 resize-none border-none outline-none py-3 bg-transparent text-mist placeholder-fog max-h-32 min-h-[24px] font-light tracking-wide"
@@ -204,7 +211,7 @@ export default function ChatArea({ chat, onSendMessage, onToggleSidebar, loading
                 height: 'auto',
                 minHeight: '24px',
               }}
-              onInput={(e) => {
+              onInput={e => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
                 target.style.height = target.scrollHeight + 'px';

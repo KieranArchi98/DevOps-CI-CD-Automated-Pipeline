@@ -13,7 +13,7 @@ spec:
         app: llm-frontend
     spec:
       containers:
-      - name: llm-frontend
-        image: llm-chatbot-frontend:local
-        ports:
-        - containerPort: 80
+        - name: llm-frontend
+          image: llm-chatbot-frontend:local
+          ports:
+            - containerPort: 80
