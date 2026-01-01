@@ -231,9 +231,7 @@ video {
   border-color: hsl(var(--border));
 }
 body {
-  font-family:
-    Exo\2,
-    sans-serif;
+  font-family: Exo\2, sans-serif;
   background: linear-gradient(
     135deg,
     var(--mist-dark) 0,
