@@ -194,3 +194,11 @@ uvicorn app.main:app --reload
 cd frontend
 npm run dev
 ```
+
+
+📝 README Discipline
+Every repo should have:
+What it does
+How to run it
+How to test it
+Architecture overview (bonus)

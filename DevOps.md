@@ -1,3 +1,4 @@
+ [Phase0+Roadmap]
  project demonstrates real-world DevOps and CI/CD practices:
 
 Automated builds & testing → GitHub Actions + Jest/pytest
@@ -365,26 +366,302 @@ Standard in professional Kubernetes environments for zero-downtime deployment
 
 
 
+[Prometheus+Grafana]
+3️⃣ How They Integrate With CI/CD Pipelines
 
-phase 7 prompt~
+Think of the CI/CD pipeline as the “delivery mechanism” for your app:
 
-i want to use pytest to add some testing and validation to the backend for my ci/cd pipeline. you can see my overall devops architecture in @CICD & DevOps  but for now i want these tests added to the backend : 'Backend app starts correctly
+CI Pipeline:
 
-A health-check endpoint (or simple API route)
+Lints code
 
-Basic response structure' place these tests in a /tests folder. I then want you to add frontend tests using jest and react testing library. again, have these tests stored in the frontend /tests folder and for now create a test that validates chat input and checks if its rendering as intended. we should then be able to display coverage badges in the readme for credibility. the pipeline should now do this:
+Runs tests
 
-Checkout code
+Builds artifacts (frontend, backend, Docker images)
 
-Install backend dependencies
+Optional: Runs static metrics checks (like code coverage)
 
-Run backend tests
+CD Pipeline (Deployment):
 
-Install frontend dependencies
+Deploys app to staging/production (VM, Kubernetes, etc.)
 
-Run frontend tests
+Runs smoke tests (health check endpoints, basic API tests)
 
-Only then build Docker images. please also create an update.md document to keep track of everything you do
+Exposes /metrics endpoints
+
+Observability Integration:
+
+Prometheus scrapes /metrics from the newly deployed app
+
+Grafana dashboards visualize the data
+
+If thresholds are exceeded (latency, error rate, resource usage):
+
+Alerts fire
+
+Automated rollback can be triggered (if pipeline supports it)
+
+Continuous feedback to devs: CI/CD + Prometheus/Grafana → operational insight
+
+Summary:
+
+CI/CD pipelines deliver the code; Prometheus/Grafana tell you if the delivery is safe, stable, and performant.
+
+
+[Developer commits code] → [GitHub Actions CI: lint, test, build] → [Docker image built] 
+→ [Deploy to staging via CD] → [Prometheus scrapes /metrics] → [Grafana dashboard shows stats] 
+→ [Alerts trigger if unhealthy] → [Manual or automated rollback if needed] 
+→ [Deploy to production when metrics stable]
+
+
+
+
+
+
+[Phase7+Roadmap]
+🔜 PHASES REMAINING (What’s Left)
+
+Everything below is what we still need to implement.
+
+🚀 Phase 8.5 — Deployment Automation (NEXT)
+
+Goal:
+Automatically deploy your containers after a successful CI run.
+
+What we’ll add
+
+A deployment target:
+
+Docker Compose (first)
+
+Kubernetes (later)
+
+CI job that:
+
+Pulls new images
+
+Restarts services
+
+Zero manual deploy steps
+
+Why it matters
+
+This turns CI into true CI/CD.
+
+✔️ Code → Running system
+❌ No SSH + manual docker commands
+
+🔁 Phase 9 — Runtime Configuration & Secrets Management
+
+Goal:
+Remove secrets and environment config from code and GitHub.
+
+Tools / Concepts
+
+GitHub Secrets
+
+Runtime environment variables
+
+.env separation:
+
+dev
+
+staging
+
+prod
+
+Why it matters
+
+Security
+
+Compliance
+
+Production readiness
+
+🔎 Phase 10 — Post-Deploy Verification (Metrics-Aware CD)
+
+Goal:
+Use Prometheus to approve or reject deployments.
+
+What we’ll add
+
+CI step after deploy that:
+
+Waits for app startup
+
+Queries Prometheus
+
+Checks:
+
+Error rate
+
+Latency
+
+Availability
+
+Result
+
+Deployments fail automatically if:
+
+Error rate spikes
+
+App doesn’t come up
+
+Latency exceeds thresholds
+
+This is real DevOps, not just automation.
+
+🔄 Phase 11 — Progressive Delivery
+
+Goal:
+Deploy changes safely.
+
+Techniques
+
+Blue/Green deployments
+
+Canary releases
+
+Versioned containers
+
+Metrics Used
+
+Grafana dashboards
+
+Prometheus alerting
+
+Error deltas between versions
+
+This is where observability + CI/CD fully connect.
+
+📈 Phase 12 — Scalability & Performance Layer
+
+Goal:
+Prepare the system for real load.
+
+Components
+
+Redis (caching, rate limiting)
+
+Background workers (async LLM tasks)
+
+Horizontal scaling concepts
+
+Why now
+
+You don’t add scale until:
+
+Deployments are safe
+
+Metrics are trusted
+
+🧠 Phase 13 — Production Hardening
+
+Goal:
+Make the system resilient and professional.
+
+Includes
+
+Health checks
+
+Readiness probes
+
+Graceful shutdowns
+
+Structured logging
+
+Alerting (Slack / Email)
+
+☁️ Phase 14 — Infrastructure as Code (Senior-Level)
+
+Goal:
+Rebuild everything from scratch using code.
+
+Tools
+
+Terraform
+
+Cloud provider (AWS / Fly.io / GCP)
+
+Declarative infra
+
+Outcome
+
+You can:
+
+Recreate your entire platform
+
+Onboard instantly
+
+Pass senior-level interviews
+
+🧾 High-Level Checklist (Remaining)
+
+Here’s the compressed checklist view:
+
+ Automated deployment (Docker Compose → K8s)
+
+ Runtime secrets management
+
+ Metrics-gated deployments
+
+ Progressive delivery (canary / blue-green)
+
+ Redis + async processing
+
+ Alerting & SLOs
+
+ Infrastructure as Code (Terraform)
+
+
+
+
+
+
+
+ [GithubMastery]
+🧭 Start Work on Something New
+git checkout main
+git pull origin main
+git checkout -b feature/add-port-scanner
+
+Good (Conventional Commits)
+git commit -m "feat: add TCP port scanning module"
+git commit -m "fix: handle socket timeout errors"
+git commit -m "refactor: simplify ping worker thread"
+
+Commit Types
+feat: new feature
+fix: bug fix
+refactor: code cleanup
+docs: documentation
+test: tests
+chore: tooling/config
+💡 Employers love this.
+
+⬆ Push Your Feature Branch
+git push -u origin feature/add-port-scanner
+
+🧹 Cleanup After Merge
+git checkout main
+git pull origin main
+git branch -d feature/add-port-scanner
+
+
+
+
+
+
+# Pull latest images
+docker pull ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:latest
+docker pull ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:latest
+
+# Restart services
+docker-compose down
+docker-compose up -d
+
+# Verify running
+docker ps
 
 
 
@@ -395,3 +672,21 @@ Only then build Docker images. please also create an update.md document to keep 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+📝 README Discipline
+Every repo should have:
+What it does
+How to run it
+How to test it
+Architecture overview (bonus)

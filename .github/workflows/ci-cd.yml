@@ -15,50 +15,32 @@ jobs:
   lint-backend:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-
-      - name: Install Linting Tools
-        run: pip install flake8 black
-
-      - name: Run flake8
-        run: |
+      - run: pip install flake8 black
+      - run: |
           cd backend
           flake8 .
-
-      - name: Run black check
-        run: |
+      - run: |
           cd backend
           black --check .
 
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "18"
-
-      - name: Install Dependencies
-        run: |
+      - run: |
           cd frontend
           npm install
-
-      - name: Run ESLint
-        run: |
+      - run: |
           cd frontend
           npm run lint
-
-      - name: Run Prettier check
-        run: |
+      - run: |
           cd frontend
           npm run format:check
 
@@ -66,57 +48,39 @@ jobs:
     needs: [lint-backend, lint-frontend]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-
-      - name: Set up Node
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "18"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
       # Backend Tests
-      - name: Install Backend Dependencies
-        run: |
+      - run: |
           cd backend
           pip install -r requirements.txt
-
-      - name: Run Backend Tests
-        env:
+      - env:
           PYTHONPATH: ${{ github.workspace }}/backend
         run: |
           cd backend
           pytest --cov=app tests/
 
       # Frontend Tests
-      - name: Install Frontend Dependencies
-        run: |
+      - run: |
           cd frontend
           npm install
-
-      - name: Run Frontend Tests
-        run: |
+      - run: |
           cd frontend
           npm test -- --coverage --watchAll=false
 
-      # Backend build test
-      - name: Build Backend Image (Test)
-        run: docker build -t genesis-backend:ci ./backend
+      # Build Images
+      - run: docker build -t genesis-backend:ci ./backend
+      - run: docker build -t genesis-frontend:ci ./frontend
 
-      # Frontend build test
-      - name: Build Frontend Image (Test)
-        run: docker build -t genesis-frontend:ci ./frontend
-
-      # Container Security Scanning
-      - name: Scan Backend Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
+      # Vulnerability Scanning
+      - uses: aquasecurity/trivy-action@master
         with:
           image-ref: "genesis-backend:ci"
           format: "table"
@@ -124,9 +88,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "HIGH,CRITICAL"
-
-      - name: Scan Frontend Image for Vulnerabilities
-        uses: aquasecurity/trivy-action@master
+      - uses: aquasecurity/trivy-action@master
         with:
           image-ref: "genesis-frontend:ci"
           format: "table"
@@ -140,33 +102,45 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Backend Image
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
           tags: |
             ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:latest
             ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:${{ github.sha }}
-
-      - name: Build and push Frontend Image
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
           tags: |
             ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:latest
             ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_DB: ${{ secrets.MONGO_DB }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
+      REDIS_URL: redis://redis:6379/0
+      ENV: prod
+      PROMETHEUS_STORAGE: /prometheus
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - run: |
+          docker-compose --env-file .env.prod pull
+          docker-compose --env-file .env.prod up -d
