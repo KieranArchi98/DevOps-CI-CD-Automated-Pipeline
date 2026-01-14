@@ -15,7 +15,7 @@ class LLMService:
     async def chat(messages):
         model = "gpt-3.5-turbo"
         start_time = time.time()
-        
+
         try:
             loop = asyncio.get_event_loop()
             # For openai>=1.0.0, use openai.chat.completions.create
@@ -26,16 +26,16 @@ class LLMService:
                     messages=messages,
                 ),
             )
-            
+
             # Calculate response time
             response_time = time.time() - start_time
-            
+
             # Extract token usage from response
             usage = response.usage
             prompt_tokens = usage.prompt_tokens if usage else 0
             completion_tokens = usage.completion_tokens if usage else 0
             total_tokens = usage.total_tokens if usage else 0
-            
+
             # Track metrics
             MetricsService.track_llm_call(
                 model=model,
@@ -45,12 +45,12 @@ class LLMService:
                 total_tokens=total_tokens,
                 response_time=response_time,
             )
-            
+
             return response.choices[0].message.content
         except Exception as e:
             # Calculate response time even for errors
             response_time = time.time() - start_time
-            
+
             # Track error metrics
             MetricsService.track_llm_call(
                 model=model,
@@ -61,6 +61,6 @@ class LLMService:
                 error_type="api_error",
                 service="llm",
             )
-            
+
             print(f"[LLMService] OpenAI API error: {e}")
             return "[Error: LLM service unavailable]"

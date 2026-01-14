@@ -12,47 +12,42 @@ app = FastAPI()
 
 # Custom HTTP metrics for deployment verification
 http_requests_total = Counter(
-    "http_requests_total",
-    "Total HTTP requests",
-    ["method", "endpoint", "status"]
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
 )
 
 http_request_duration_seconds = Histogram(
     "http_request_duration_seconds",
     "HTTP request latency in seconds",
     ["method", "endpoint"],
-    buckets=[0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+    buckets=[0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0],
 )
+
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     """Track HTTP request metrics for deployment verification."""
     start_time = time.time()
-    
+
     # Process request
     response = await call_next(request)
-    
+
     # Calculate latency
     latency = time.time() - start_time
-    
+
     # Get endpoint path (normalize to avoid high cardinality)
     endpoint = request.url.path
     method = request.method
     status = response.status_code
-    
+
     # Track metrics
-    http_requests_total.labels(
-        method=method,
-        endpoint=endpoint,
-        status=status
-    ).inc()
-    
-    http_request_duration_seconds.labels(
-        method=method,
-        endpoint=endpoint
-    ).observe(latency)
-    
+    http_requests_total.labels(method=method, endpoint=endpoint, status=status).inc()
+
+    http_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(
+        latency
+    )
+
     return response
+
 
 app.add_middleware(
     CORSMiddleware,

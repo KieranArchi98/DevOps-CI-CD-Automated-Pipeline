@@ -18,10 +18,10 @@ class ConversationService:
         }
         result = await db.conversations.insert_one(doc)
         doc["_id"] = str(result.inserted_id)
-        
+
         # Track conversation creation
         MetricsService.track_conversation_created()
-        
+
         return Conversation(**doc)
 
     @staticmethod
@@ -56,12 +56,12 @@ class ConversationService:
             {"$set": {"updated_at": datetime.utcnow()}},
         )
         print("[DEBUG] Returning Message:", message_dict)
-        
+
         # Track message creation
         role = message_dict.get("role", "unknown")
         content_length = len(message_dict.get("content", ""))
         MetricsService.track_message(role=role, content_length=content_length)
-        
+
         return Message(**message_dict)
 
     @staticmethod
@@ -77,11 +77,11 @@ class ConversationService:
     async def delete_conversation(conversation_id: str) -> bool:
         result = await db.conversations.delete_one({"_id": ObjectId(conversation_id)})
         await db.messages.delete_many({"conversation_id": conversation_id})
-        
+
         # Track conversation deletion
         if result.deleted_count > 0:
             MetricsService.track_conversation_deleted()
-        
+
         return result.deleted_count > 0
 
     @staticmethod

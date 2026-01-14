@@ -7,7 +7,6 @@ All metrics are exposed in Prometheus format via the /metrics endpoint.
 
 from prometheus_client import Counter, Histogram, Gauge, Info
 from typing import Dict, Any
-import time
 
 
 class MetricsService:
@@ -144,15 +143,15 @@ class MetricsService:
 
         if status == "success" and total_tokens > 0:
             # Track token counts
-            cls.llm_tokens_total.labels(
-                model=model, token_type="prompt"
-            ).inc(prompt_tokens)
-            cls.llm_tokens_total.labels(
-                model=model, token_type="completion"
-            ).inc(completion_tokens)
-            cls.llm_tokens_total.labels(
-                model=model, token_type="total"
-            ).inc(total_tokens)
+            cls.llm_tokens_total.labels(model=model, token_type="prompt").inc(
+                prompt_tokens
+            )
+            cls.llm_tokens_total.labels(model=model, token_type="completion").inc(
+                completion_tokens
+            )
+            cls.llm_tokens_total.labels(model=model, token_type="total").inc(
+                total_tokens
+            )
 
             # Track token usage distribution
             cls.llm_token_usage_histogram.labels(
