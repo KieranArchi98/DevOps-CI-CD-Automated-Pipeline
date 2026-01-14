@@ -11,17 +11,22 @@ WORKDIR /app
 # -------- Dependencies --------
 FROM base AS dependencies
 
+# Install build tools
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip, setuptools, wheel to fix jaraco.context vuln
+RUN pip install --upgrade pip setuptools wheel
+
+# Copy dependency file and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # -------- Final image --------
 FROM base AS final
 
-# Copy installed dependencies
+# Copy installed dependencies from the dependencies stage
 COPY --from=dependencies /usr/local /usr/local
 
 # Copy application code
