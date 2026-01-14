@@ -690,3 +690,29 @@ What it does
 How to run it
 How to test it
 Architecture overview (bonus)
+
+**Untracking Secrets Before Commit & Push**
+
+- **Purpose:** Ensure local secret and env files are not committed or pushed while keeping local copies.
+- **Run this before adding/committing/pushing (once after pulling or before creating a new repo):**
+
+```powershell
+# Run from the repository root
+.\scripts\untrack-secrets.ps1
+
+# Then add/commit/push as usual
+git add .
+git commit -m "your commit message"
+git push origin <branch>
+```
+
+- **When to run:**
+	- After pulling a repo that may contain tracked `.env` or secret files.
+	- Before you `git add .` or create a new repository from these files.
+
+- **What the script does:**
+	- Removes tracked secret/env files from Git index (keeps local files intact).
+	- Leaves `.gitignore` in place so future `git add` won't include those files.
+	- Commits the untrack operation so the index is clean locally.
+
+- **Important:** If secrets already exist in remote history, GitHub's secret-scanning/push-protection may still block pushes; removing local tracking does not rewrite remote history. To fully remove secrets from the remote you must rewrite history (e.g., `git-filter-repo`/BFG) and force-push (admin action) or use the GitHub unblock flow.
