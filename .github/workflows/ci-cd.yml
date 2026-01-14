@@ -128,7 +128,7 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/kieranarchi98/genesis-ai-chatbot-backend
+          images: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend
           tags: |
             type=sha,prefix=
             type=raw,value=latest
@@ -137,7 +137,7 @@ jobs:
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend
+          images: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend
           tags: |
             type=sha,prefix=
             type=raw,value=latest

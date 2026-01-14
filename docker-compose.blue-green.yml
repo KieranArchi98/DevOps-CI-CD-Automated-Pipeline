@@ -6,7 +6,7 @@ services:
   # ============================================================================
 
   backend-blue:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:${BACKEND_VERSION:-latest}
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${BACKEND_VERSION:-latest}
     container_name: llm-backend-blue
     restart: always
     environment:
@@ -28,7 +28,7 @@ services:
       start_period: 30s
 
   frontend-blue:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:${FRONTEND_VERSION:-latest}
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:${FRONTEND_VERSION:-latest}
     container_name: llm-frontend-blue
     restart: always
     depends_on:
@@ -55,7 +55,7 @@ services:
   # ============================================================================
 
   backend-green:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:${BACKEND_VERSION:-latest}
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${BACKEND_VERSION:-latest}
     container_name: llm-backend-green
     restart: always
     environment:
@@ -77,7 +77,7 @@ services:
       start_period: 30s
 
   frontend-green:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:${FRONTEND_VERSION:-latest}
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:${FRONTEND_VERSION:-latest}
     container_name: llm-frontend-green
     restart: always
     depends_on:

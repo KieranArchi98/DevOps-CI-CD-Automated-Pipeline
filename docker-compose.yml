@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:latest
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest
     container_name: llm-backend
     restart: always
     ports:
@@ -17,7 +17,7 @@ services:
       - redis
 
   frontend:
-    image: ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:latest
+    image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:latest
     container_name: llm-frontend
     restart: always
     ports:
