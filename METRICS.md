@@ -25,6 +25,7 @@ A JSON endpoint providing a quick overview of metrics status.
 **Format:** JSON
 
 **Example Response:**
+
 ```json
 {
   "llm": {
@@ -55,12 +56,14 @@ Health check endpoint for the metrics system.
 ### LLM Metrics
 
 #### `genesis_ai_llm_api_calls_total`
+
 - **Type:** Counter
 - **Labels:** `model`, `status`
 - **Description:** Total number of LLM API calls made
 - **Example:** `genesis_ai_llm_api_calls_total{model="gpt-3.5-turbo",status="success"} 42`
 
 #### `genesis_ai_llm_tokens_total`
+
 - **Type:** Counter
 - **Labels:** `model`, `token_type`
 - **Description:** Total number of tokens used in LLM API calls
@@ -68,12 +71,14 @@ Health check endpoint for the metrics system.
 - **Example:** `genesis_ai_llm_tokens_total{model="gpt-3.5-turbo",token_type="total"} 15420`
 
 #### `genesis_ai_llm_token_usage`
+
 - **Type:** Histogram
 - **Labels:** `model`, `token_type`
 - **Description:** Distribution of token usage per LLM API call
 - **Buckets:** 10, 50, 100, 250, 500, 1000, 2500, 5000, 10000
 
 #### `genesis_ai_llm_response_time_seconds`
+
 - **Type:** Histogram
 - **Labels:** `model`
 - **Description:** LLM API response time in seconds
@@ -82,6 +87,7 @@ Health check endpoint for the metrics system.
 ### Message Metrics
 
 #### `genesis_ai_messages_total`
+
 - **Type:** Counter
 - **Labels:** `role`
 - **Description:** Total number of messages created
@@ -89,6 +95,7 @@ Health check endpoint for the metrics system.
 - **Example:** `genesis_ai_messages_total{role="user"} 25`
 
 #### `genesis_ai_message_length_characters`
+
 - **Type:** Histogram
 - **Labels:** `role`
 - **Description:** Distribution of message lengths in characters
@@ -97,21 +104,25 @@ Health check endpoint for the metrics system.
 ### Conversation Metrics
 
 #### `genesis_ai_conversations_total`
+
 - **Type:** Counter
 - **Description:** Total number of conversations created
 - **Example:** `genesis_ai_conversations_total 10`
 
 #### `genesis_ai_conversations_deleted_total`
+
 - **Type:** Counter
 - **Description:** Total number of conversations deleted
 - **Example:** `genesis_ai_conversations_deleted_total 2`
 
 #### `genesis_ai_active_conversations`
+
 - **Type:** Gauge
 - **Description:** Current number of active conversations
 - **Example:** `genesis_ai_active_conversations 8`
 
 #### `genesis_ai_messages_per_conversation`
+
 - **Type:** Histogram
 - **Description:** Distribution of messages per conversation
 - **Buckets:** 1, 5, 10, 20, 50, 100, 200
@@ -119,6 +130,7 @@ Health check endpoint for the metrics system.
 ### Error Metrics
 
 #### `genesis_ai_errors_total`
+
 - **Type:** Counter
 - **Labels:** `error_type`, `service`
 - **Description:** Total number of errors by type
@@ -127,6 +139,7 @@ Health check endpoint for the metrics system.
 ### Application Info
 
 #### `genesis_ai_application_info`
+
 - **Type:** Info
 - **Description:** Application information (version, name, default model)
 
@@ -148,17 +161,17 @@ Add this scrape configuration to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'genesis-ai-chatbot'
+  - job_name: "genesis-ai-chatbot"
     scrape_interval: 15s
     static_configs:
-      - targets: ['localhost:8000']
-    metrics_path: '/metrics'
+      - targets: ["localhost:8000"]
+    metrics_path: "/metrics"
 ```
 
 ### Docker Compose Example
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   prometheus:
@@ -169,8 +182,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
 
   grafana:
     image: grafana/grafana:latest
@@ -193,21 +206,25 @@ volumes:
 ### Token Usage
 
 **Total tokens used:**
+
 ```promql
 sum(genesis_ai_llm_tokens_total{token_type="total"})
 ```
 
 **Token usage rate (tokens per minute):**
+
 ```promql
 rate(genesis_ai_llm_tokens_total{token_type="total"}[5m]) * 60
 ```
 
 **Average tokens per request:**
+
 ```promql
 rate(genesis_ai_llm_tokens_total{token_type="total"}[5m]) / rate(genesis_ai_llm_api_calls_total{status="success"}[5m])
 ```
 
 **95th percentile token usage:**
+
 ```promql
 histogram_quantile(0.95, rate(genesis_ai_llm_token_usage_bucket{token_type="total"}[5m]))
 ```
@@ -215,16 +232,19 @@ histogram_quantile(0.95, rate(genesis_ai_llm_token_usage_bucket{token_type="tota
 ### API Performance
 
 **LLM API success rate:**
+
 ```promql
 sum(rate(genesis_ai_llm_api_calls_total{status="success"}[5m])) / sum(rate(genesis_ai_llm_api_calls_total[5m])) * 100
 ```
 
 **Average LLM response time:**
+
 ```promql
 rate(genesis_ai_llm_response_time_seconds_sum[5m]) / rate(genesis_ai_llm_response_time_seconds_count[5m])
 ```
 
 **95th percentile LLM response time:**
+
 ```promql
 histogram_quantile(0.95, rate(genesis_ai_llm_response_time_seconds_bucket[5m]))
 ```
@@ -232,21 +252,25 @@ histogram_quantile(0.95, rate(genesis_ai_llm_response_time_seconds_bucket[5m]))
 ### Messages and Conversations
 
 **Message creation rate:**
+
 ```promql
 sum(rate(genesis_ai_messages_total[5m])) by (role)
 ```
 
 **Active conversations:**
+
 ```promql
 genesis_ai_active_conversations
 ```
 
 **Conversation creation rate:**
+
 ```promql
 rate(genesis_ai_conversations_total[5m])
 ```
 
 **Average messages per conversation:**
+
 ```promql
 sum(genesis_ai_messages_total) / sum(genesis_ai_conversations_total)
 ```
@@ -254,11 +278,13 @@ sum(genesis_ai_messages_total) / sum(genesis_ai_conversations_total)
 ### Error Monitoring
 
 **Error rate:**
+
 ```promql
 sum(rate(genesis_ai_errors_total[5m])) by (error_type, service)
 ```
 
 **LLM API error rate:**
+
 ```promql
 sum(rate(genesis_ai_llm_api_calls_total{status="error"}[5m]))
 ```
@@ -453,6 +479,7 @@ def verify_metrics_auth(credentials: HTTPBasicCredentials = Depends(security)):
 ### High Memory Usage
 
 If metrics are consuming too much memory:
+
 1. Reduce histogram bucket counts
 2. Limit label cardinality (avoid high-cardinality labels like user IDs)
 3. Adjust Prometheus retention settings
@@ -464,24 +491,17 @@ If metrics are consuming too much memory:
 - [prometheus_client Python Library](https://github.com/prometheus/client_python)
 - [FastAPI Prometheus Instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator)
 
-
-
-
-docker run -d `
-  --name prometheus `
-  -p 9090:9090 `
-  -v ${PWD}\prometheus.yml:/etc/prometheus/prometheus.yml `
-  prom/prometheus
+docker run -d `  --name prometheus`
+-p 9090:9090 `  -v ${PWD}\prometheus.yml:/etc/prometheus/prometheus.yml`
+prom/prometheus
 
 http://localhost:9090
 
-docker run -d `
-  --name grafana `
-  -p 3003:3000 `
-  grafana/grafana
+docker run -d `  --name grafana`
+-p 3003:3000 `
+grafana/grafana
 
 http://localhost:9090
-
 
 1. Start backend (FastAPI)
 2. Start Prometheus

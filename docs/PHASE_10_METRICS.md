@@ -11,6 +11,7 @@ Phase 10 implements automatic deployment verification using Prometheus metrics. 
 The backend exposes the following HTTP-level metrics for deployment verification:
 
 #### `http_requests_total`
+
 - **Type**: Counter
 - **Description**: Total number of HTTP requests
 - **Labels**:
@@ -19,6 +20,7 @@ The backend exposes the following HTTP-level metrics for deployment verification
   - `status`: HTTP status code
 
 #### `http_request_duration_seconds`
+
 - **Type**: Histogram
 - **Description**: HTTP request latency in seconds
 - **Labels**:
@@ -70,11 +72,11 @@ In addition to HTTP metrics, the application exposes custom metrics via `Metrics
 
 ## Deployment Thresholds
 
-| Metric | Threshold | Rationale |
-|--------|-----------|-----------|
-| **Error Rate** | > 5% | Indicates significant application issues; 5% allows for some transient errors while catching serious problems |
-| **P95 Latency** | > 2.0s | Ensures good user experience; 95th percentile means 95% of requests complete faster |
-| **Availability** | Health check must pass | Basic sanity check that application is running and responding |
+| Metric           | Threshold              | Rationale                                                                                                     |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Error Rate**   | > 5%                   | Indicates significant application issues; 5% allows for some transient errors while catching serious problems |
+| **P95 Latency**  | > 2.0s                 | Ensures good user experience; 95th percentile means 95% of requests complete faster                           |
+| **Availability** | Health check must pass | Basic sanity check that application is running and responding                                                 |
 
 ## Adjusting Thresholds
 
@@ -119,12 +121,14 @@ Change `0.95` to `0.99` (or `0.50` for median, `0.90` for P90, etc.).
 **Symptom**: CI/CD logs show "ERROR: Error rate (X%) exceeds threshold (5%)"
 
 **Possible Causes**:
+
 1. Application code introduced a bug causing 5xx errors
 2. Database connection issues
 3. External API failures (e.g., OpenAI API)
 4. Configuration errors in environment variables
 
 **Steps to Debug**:
+
 1. Check GitHub Actions logs for the exact error percentage
 2. Access Prometheus at `http://localhost:9090` and run:
    ```
@@ -142,12 +146,14 @@ Change `0.95` to `0.99` (or `0.50` for median, `0.90` for P90, etc.).
 **Symptom**: CI/CD logs show "ERROR: P95 latency (X s) exceeds threshold (2.0 s)"
 
 **Possible Causes**:
+
 1. Database query performance degradation
 2. External API slowness (e.g., OpenAI API)
 3. Insufficient resources (CPU/memory)
 4. Network issues
 
 **Steps to Debug**:
+
 1. Check Prometheus for latency breakdown by endpoint:
    ```
    histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) by (endpoint)
@@ -165,12 +171,14 @@ Change `0.95` to `0.99` (or `0.50` for median, `0.90` for P90, etc.).
 **Symptom**: CI/CD logs show "ERROR: Backend health check failed"
 
 **Possible Causes**:
+
 1. Application failed to start
 2. Port binding issues
 3. Dependency failures (MongoDB, Redis)
 4. Configuration errors
 
 **Steps to Debug**:
+
 1. Check if backend container is running:
    ```bash
    docker ps -a
@@ -195,6 +203,7 @@ Change `0.95` to `0.99` (or `0.50` for median, `0.90` for P90, etc.).
 **Note**: This is a warning, not a failure. Deployment continues but metrics checks are skipped.
 
 **Steps to Fix**:
+
 1. Check Prometheus targets at `http://localhost:9090/targets`
 2. Verify backend is exposing metrics:
    ```bash
@@ -212,6 +221,7 @@ Change `0.95` to `0.99` (or `0.50` for median, `0.90` for P90, etc.).
 ### Access Prometheus UI
 
 1. Start services:
+
    ```bash
    docker-compose --env-file .env.dev up -d
    ```

@@ -1,5 +1,5 @@
- [Phase0+Roadmap]
- project demonstrates real-world DevOps and CI/CD practices:
+[Phase0+Roadmap]
+project demonstrates real-world DevOps and CI/CD practices:
 
 Automated builds & testing → GitHub Actions + Jest/pytest
 
@@ -14,9 +14,6 @@ Code quality & maintainability → ESLint + Prettier
 Observability & monitoring → Prometheus + Grafana
 
 Advanced practices (optional) → Terraform, Helm, Blue/Green, Canary
-
-
-
 
 1. GitHub Actions
 
@@ -358,14 +355,6 @@ Industry relevance:
 
 Standard in professional Kubernetes environments for zero-downtime deployment
 
-
-
-
-
-
-
-
-
 [Prometheus+Grafana]
 3️⃣ How They Integrate With CI/CD Pipelines
 
@@ -407,16 +396,10 @@ Summary:
 
 CI/CD pipelines deliver the code; Prometheus/Grafana tell you if the delivery is safe, stable, and performant.
 
-
-[Developer commits code] → [GitHub Actions CI: lint, test, build] → [Docker image built] 
-→ [Deploy to staging via CD] → [Prometheus scrapes /metrics] → [Grafana dashboard shows stats] 
-→ [Alerts trigger if unhealthy] → [Manual or automated rollback if needed] 
+[Developer commits code] → [GitHub Actions CI: lint, test, build] → [Docker image built]
+→ [Deploy to staging via CD] → [Prometheus scrapes /metrics] → [Grafana dashboard shows stats]
+→ [Alerts trigger if unhealthy] → [Manual or automated rollback if needed]
 → [Deploy to production when metrics stable]
-
-
-
-
-
 
 [Phase7+Roadmap]
 🔜 PHASES REMAINING (What’s Left)
@@ -599,27 +582,21 @@ Pass senior-level interviews
 
 Here’s the compressed checklist view:
 
- Automated deployment (Docker Compose → K8s)
+Automated deployment (Docker Compose → K8s)
 
- Runtime secrets management
+Runtime secrets management
 
- Metrics-gated deployments
+Metrics-gated deployments
 
- Progressive delivery (canary / blue-green)
+Progressive delivery (canary / blue-green)
 
- Redis + async processing
+Redis + async processing
 
- Alerting & SLOs
+Alerting & SLOs
 
- Infrastructure as Code (Terraform)
+Infrastructure as Code (Terraform)
 
-
-
-
-
-
-
- [GithubMastery]
+[GithubMastery]
 🧭 Start Work on Something New
 git checkout main
 git pull origin main
@@ -647,42 +624,19 @@ git checkout main
 git pull origin main
 git branch -d feature/add-port-scanner
 
-
-
-
-
-
 # Pull latest images
+
 docker pull ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:latest
 docker pull ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:latest
 
 # Restart services
+
 docker-compose down
 docker-compose up -d
 
 # Verify running
+
 docker ps
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 📝 README Discipline
 Every repo should have:
@@ -707,12 +661,12 @@ git push origin <branch>
 ```
 
 - **When to run:**
-	- After pulling a repo that may contain tracked `.env` or secret files.
-	- Before you `git add .` or create a new repository from these files.
+  - After pulling a repo that may contain tracked `.env` or secret files.
+  - Before you `git add .` or create a new repository from these files.
 
 - **What the script does:**
-	- Removes tracked secret/env files from Git index (keeps local files intact).
-	- Leaves `.gitignore` in place so future `git add` won't include those files.
-	- Commits the untrack operation so the index is clean locally.
+  - Removes tracked secret/env files from Git index (keeps local files intact).
+  - Leaves `.gitignore` in place so future `git add` won't include those files.
+  - Commits the untrack operation so the index is clean locally.
 
 - **Important:** If secrets already exist in remote history, GitHub's secret-scanning/push-protection may still block pushes; removing local tracking does not rewrite remote history. To fully remove secrets from the remote you must rewrite history (e.g., `git-filter-repo`/BFG) and force-push (admin action) or use the GitHub unblock flow.

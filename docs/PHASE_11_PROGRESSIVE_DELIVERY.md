@@ -34,6 +34,7 @@ Phase 11 implements progressive delivery using Blue/Green deployment strategy wi
 ```
 
 **Key Components:**
+
 - **Blue Slot**: Currently active production deployment
 - **Green Slot**: Inactive slot used for canary deployments
 - **Nginx**: Reverse proxy routing traffic to active slot
@@ -49,7 +50,7 @@ When code is pushed to `main` or `develop`:
 
 1. **Build & Test**: Code is linted, tested, and scanned for vulnerabilities
 2. **Build & Push**: Docker images tagged with Git SHA and `latest`
-3. **Deploy Canary**: 
+3. **Deploy Canary**:
    - Determine inactive slot (if blue is active, deploy to green)
    - Pull versioned images (`${{ github.sha }}`)
    - Deploy to canary slot
@@ -92,18 +93,18 @@ If issues are detected:
 
 ### Canary Thresholds
 
-| Metric | Absolute Threshold | Production Comparison |
-|--------|-------------------|----------------------|
-| **Error Rate** | < 5% | Not > 2x production |
-| **P95 Latency** | < 2.0 seconds | Not > 1.5x production |
-| **Availability** | 100% health checks | Must pass all checks |
+| Metric           | Absolute Threshold | Production Comparison |
+| ---------------- | ------------------ | --------------------- |
+| **Error Rate**   | < 5%               | Not > 2x production   |
+| **P95 Latency**  | < 2.0 seconds      | Not > 1.5x production |
+| **Availability** | 100% health checks | Must pass all checks  |
 
 ### Validation Logic
 
 The `check-canary-metrics.sh` script validates:
 
 1. **Availability**: Canary must be `up` in Prometheus
-2. **Error Rate**: 
+2. **Error Rate**:
    - Query: `rate(http_requests_total{status=~"5.."}[2m]) / rate(http_requests_total[2m])`
    - Must be < 5%
    - Must not exceed 2x production error rate
@@ -211,6 +212,7 @@ curl http://localhost:8081/active-slot
 **Triggers**: Push to `main` or `develop`
 
 **Steps**:
+
 1. Determine inactive slot
 2. Deploy to canary slot
 3. Wait for health checks
@@ -225,6 +227,7 @@ curl http://localhost:8081/active-slot
 **Triggers**: After successful canary deployment
 
 **Steps**:
+
 1. **Manual approval required** (production environment)
 2. Switch traffic to canary slot
 3. Monitor production metrics for 5 minutes
@@ -238,6 +241,7 @@ curl http://localhost:8081/active-slot
 **Triggers**: Manual workflow dispatch
 
 **Steps**:
+
 1. **Manual approval required**
 2. Switch traffic to specified slot
 3. Verify rollback successful
@@ -249,10 +253,12 @@ curl http://localhost:8081/active-slot
 Configure in GitHub Settings → Environments:
 
 **Canary Environment**:
+
 - No required reviewers
 - Automatic deployment
 
 **Production Environment**:
+
 - Required reviewers: 1+
 - Deployment protection rules
 - Restrict to `main` branch
@@ -281,11 +287,13 @@ Create a dashboard comparing both slots:
 **Panels**:
 
 1. **Request Rate by Slot**
+
    ```promql
    rate(http_requests_total{job=~"backend-blue|backend-green"}[5m])
    ```
 
 2. **Error Rate by Slot**
+
    ```promql
    rate(http_requests_total{job=~"backend-blue|backend-green",status=~"5.."}[5m])
    / rate(http_requests_total{job=~"backend-blue|backend-green"}[5m])
@@ -293,8 +301,9 @@ Create a dashboard comparing both slots:
    ```
 
 3. **P95 Latency by Slot**
+
    ```promql
-   histogram_quantile(0.95, 
+   histogram_quantile(0.95,
      rate(http_request_duration_seconds_bucket{job=~"backend-blue|backend-green"}[5m])
    )
    ```
@@ -313,6 +322,7 @@ Create a dashboard comparing both slots:
 **Symptom**: `deploy-canary` job fails
 
 **Possible Causes**:
+
 1. Canary metrics exceed thresholds
 2. Health checks failing
 3. Container failed to start
@@ -428,17 +438,17 @@ curl -X POST http://localhost:9090/-/reload
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `docker-compose.blue-green.yml` | Blue/Green deployment configuration |
-| `nginx-blue.conf` | Nginx config routing to blue slot |
-| `nginx-green.conf` | Nginx config routing to green slot |
-| `prometheus-blue-green.yml` | Prometheus scraping both slots |
-| `scripts/check-canary-metrics.sh` | Canary metrics validation |
-| `scripts/switch-traffic.sh` | Traffic switching automation |
-| `scripts/get-inactive-slot.sh` | Determine inactive slot |
-| `.env.blue` | Blue slot environment variables |
-| `.env.green` | Green slot environment variables |
+| File                              | Purpose                             |
+| --------------------------------- | ----------------------------------- |
+| `docker-compose.blue-green.yml`   | Blue/Green deployment configuration |
+| `nginx-blue.conf`                 | Nginx config routing to blue slot   |
+| `nginx-green.conf`                | Nginx config routing to green slot  |
+| `prometheus-blue-green.yml`       | Prometheus scraping both slots      |
+| `scripts/check-canary-metrics.sh` | Canary metrics validation           |
+| `scripts/switch-traffic.sh`       | Traffic switching automation        |
+| `scripts/get-inactive-slot.sh`    | Determine inactive slot             |
+| `.env.blue`                       | Blue slot environment variables     |
+| `.env.green`                      | Green slot environment variables    |
 
 ---
 
@@ -469,6 +479,6 @@ Phase 11 provides:
 ✅ Instant rollback capability (<30 seconds)  
 ✅ Manual approval gates for production promotion  
 ✅ Comprehensive monitoring and alerting  
-✅ Local testing capabilities  
+✅ Local testing capabilities
 
 Your deployment pipeline is now production-ready with enterprise-grade progressive delivery capabilities.

@@ -44,8 +44,8 @@ services:
     environment:
       - PROMETHEUS_STORAGE=${PROMETHEUS_STORAGE}
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=${PROMETHEUS_STORAGE}'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=${PROMETHEUS_STORAGE}"
 
   grafana:
     image: grafana/grafana:latest

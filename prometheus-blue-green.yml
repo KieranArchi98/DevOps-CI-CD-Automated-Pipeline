@@ -17,21 +17,21 @@ rule_files:
 
 scrape_configs:
   # Scrape both blue and green backend slots
-  - job_name: 'backend-blue'
+  - job_name: "backend-blue"
     scrape_interval: 10s
     static_configs:
-      - targets: ['backend-blue:8000']
-    metrics_path: '/metrics'
+      - targets: ["backend-blue:8000"]
+    metrics_path: "/metrics"
 
-  - job_name: 'backend-green'
+  - job_name: "backend-green"
     scrape_interval: 10s
     static_configs:
-      - targets: ['backend-green:8000']
-    metrics_path: '/metrics'
+      - targets: ["backend-green:8000"]
+    metrics_path: "/metrics"
 
   # Scrape Nginx proxy
-  - job_name: 'nginx'
+  - job_name: "nginx"
     scrape_interval: 15s
     static_configs:
-      - targets: ['nginx:8081']
-    metrics_path: '/nginx-status'
+      - targets: ["nginx:8081"]
+    metrics_path: "/nginx-status"
