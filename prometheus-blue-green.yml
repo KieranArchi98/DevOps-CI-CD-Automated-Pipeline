@@ -1,0 +1,37 @@
+# my global config
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Scrape both blue and green backend slots
+  - job_name: 'backend-blue'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['backend-blue:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'backend-green'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['backend-green:8000']
+    metrics_path: '/metrics'
+
+  # Scrape Nginx proxy
+  - job_name: 'nginx'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['nginx:8081']
+    metrics_path: '/nginx-status'

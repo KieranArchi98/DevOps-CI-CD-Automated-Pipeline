@@ -1,8 +1,9 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline with Progressive Delivery
 
 permissions:
   contents: read
   packages: write
+  deployments: write
 
 on:
   push:
@@ -10,6 +11,15 @@ on:
       - main
       - develop
   pull_request:
+  workflow_dispatch:
+    inputs:
+      rollback_slot:
+        description: 'Slot to rollback to (blue/green)'
+        required: false
+        type: choice
+        options:
+          - blue
+          - green
 
 jobs:
   lint-backend:
@@ -101,6 +111,10 @@ jobs:
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-latest
+    outputs:
+      backend_image: ${{ steps.meta-backend.outputs.tags }}
+      frontend_image: ${{ steps.meta-frontend.outputs.tags }}
+      image_tag: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v3
@@ -109,24 +123,189 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Docker meta for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/kieranarchi98/genesis-ai-chatbot-backend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+      
+      - name: Docker meta for frontend
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+      
       - uses: docker/build-push-action@v5
         with:
           context: ./backend
           push: true
-          tags: |
-            ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:latest
-            ghcr.io/kieranarchi98/genesis-ai-chatbot-backend:${{ github.sha }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+      
       - uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: |
-            ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:latest
-            ghcr.io/kieranarchi98/genesis-ai-chatbot-frontend:${{ github.sha }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
 
-  deploy:
+  # ============================================================================
+  # CANARY DEPLOYMENT - Deploy to inactive slot and validate metrics
+  # ============================================================================
+  
+  deploy-canary:
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment:
+      name: canary
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_DB: ${{ secrets.MONGO_DB }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
+      REDIS_URL: redis://redis:6379/0
+      ENV: prod
+      PROMETHEUS_STORAGE: /prometheus
+      BACKEND_VERSION: ${{ github.sha }}
+      FRONTEND_VERSION: ${{ github.sha }}
+    outputs:
+      canary_slot: ${{ steps.determine-slot.outputs.canary_slot }}
+      production_slot: ${{ steps.determine-slot.outputs.production_slot }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Determine which slot to deploy to (inactive slot becomes canary)
+      - name: Determine deployment slots
+        id: determine-slot
+        run: |
+          # Check which slot is currently active
+          ACTIVE_SLOT=$(curl -sf http://localhost:8081/active-slot 2>/dev/null || echo "blue")
+          
+          if [ "$ACTIVE_SLOT" == "blue" ]; then
+            CANARY_SLOT="green"
+            PRODUCTION_SLOT="blue"
+          else
+            CANARY_SLOT="blue"
+            PRODUCTION_SLOT="green"
+          fi
+          
+          echo "canary_slot=$CANARY_SLOT" >> $GITHUB_OUTPUT
+          echo "production_slot=$PRODUCTION_SLOT" >> $GITHUB_OUTPUT
+          echo "Canary Slot: $CANARY_SLOT"
+          echo "Production Slot: $PRODUCTION_SLOT"
+      
+      # Deploy to canary slot
+      - name: Deploy to canary slot
+        run: |
+          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          
+          echo "Deploying to $CANARY_SLOT slot..."
+          
+          # Start canary backend and frontend
+          docker-compose -f docker-compose.blue-green.yml pull backend-${CANARY_SLOT} frontend-${CANARY_SLOT}
+          docker-compose -f docker-compose.blue-green.yml up -d backend-${CANARY_SLOT} frontend-${CANARY_SLOT}
+      
+      # Wait for canary to be healthy
+      - name: Wait for canary health
+        run: |
+          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          
+          echo "Waiting for canary ($CANARY_SLOT) to be healthy..."
+          max_attempts=60
+          attempt=0
+          
+          while [ $attempt -lt $max_attempts ]; do
+            BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' llm-backend-${CANARY_SLOT} 2>/dev/null || echo "unknown")
+            
+            if [ "$BACKEND_HEALTH" == "healthy" ]; then
+              echo "✅ Canary backend is healthy!"
+              break
+            fi
+            
+            echo "Attempt $((attempt + 1))/$max_attempts - Backend status: $BACKEND_HEALTH"
+            sleep 5
+            attempt=$((attempt + 1))
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "❌ ERROR: Canary backend failed to become healthy"
+            exit 1
+          fi
+      
+      # Wait for Prometheus to scrape canary metrics
+      - name: Wait for metrics collection
+        run: |
+          echo "Waiting 30 seconds for Prometheus to scrape canary metrics..."
+          sleep 30
+      
+      # Generate test traffic to canary
+      - name: Generate canary traffic
+        run: |
+          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          CANARY_BACKEND="llm-backend-${CANARY_SLOT}"
+          
+          echo "Generating test traffic to canary..."
+          
+          # Get canary backend IP
+          CANARY_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CANARY_BACKEND)
+          
+          # Generate traffic directly to canary (bypass nginx)
+          for i in {1..50}; do
+            docker exec llm-nginx curl -sf http://${CANARY_IP}:8000/health > /dev/null || true
+            docker exec llm-nginx curl -sf http://${CANARY_IP}:8000/api/metrics/health > /dev/null || true
+          done
+          
+          echo "Waiting 20 seconds for metrics to be scraped..."
+          sleep 20
+      
+      # Validate canary metrics
+      - name: Validate canary metrics
+        run: |
+          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          PRODUCTION_SLOT=${{ steps.determine-slot.outputs.production_slot }}
+          
+          echo "Validating canary metrics..."
+          
+          # Make script executable
+          chmod +x scripts/check-canary-metrics.sh
+          
+          # Run metrics validation
+          ./scripts/check-canary-metrics.sh "backend-${CANARY_SLOT}" "backend-${PRODUCTION_SLOT}" "http://localhost:9090"
+      
+      # Canary deployment successful
+      - name: Canary deployment complete
+        run: |
+          echo "=========================================="
+          echo "✅ Canary deployment successful!"
+          echo "=========================================="
+          echo "Canary Slot: ${{ steps.determine-slot.outputs.canary_slot }}"
+          echo "All metrics validation passed"
+          echo "Ready for production promotion"
+          echo ""
+
+  # ============================================================================
+  # PRODUCTION PROMOTION - Switch traffic to canary slot
+  # ============================================================================
+  
+  promote-to-production:
+    needs: deploy-canary
+    runs-on: ubuntu-latest
+    environment:
+      name: production
     env:
       MONGO_URI: ${{ secrets.MONGO_URI }}
       MONGO_DB: ${{ secrets.MONGO_DB }}
@@ -137,10 +316,89 @@ jobs:
       PROMETHEUS_STORAGE: /prometheus
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - run: |
-          docker-compose --env-file .env.prod pull
-          docker-compose --env-file .env.prod up -d
+      
+      # Switch traffic to canary slot
+      - name: Switch traffic to new slot
+        run: |
+          CANARY_SLOT=${{ needs.deploy-canary.outputs.canary_slot }}
+          
+          echo "Switching production traffic to $CANARY_SLOT slot..."
+          
+          # Make script executable
+          chmod +x scripts/switch-traffic.sh
+          
+          # Switch traffic
+          ./scripts/switch-traffic.sh $CANARY_SLOT docker-compose.blue-green.yml
+      
+      # Monitor production metrics for 5 minutes
+      - name: Monitor production metrics
+        run: |
+          CANARY_SLOT=${{ needs.deploy-canary.outputs.canary_slot }}
+          
+          echo "Monitoring production metrics for 5 minutes..."
+          
+          for i in {1..10}; do
+            echo "Check $i/10 ($(($i * 30)) seconds elapsed)"
+            
+            # Check error rate
+            ERROR_QUERY="rate(http_requests_total{job=\"backend-${CANARY_SLOT}\",status=~\"5..\"}[1m])"
+            TOTAL_QUERY="rate(http_requests_total{job=\"backend-${CANARY_SLOT}\"}[1m])"
+            
+            ERROR_RATE=$(curl -s "http://localhost:9090/api/v1/query?query=$ERROR_QUERY" | jq -r '.data.result[0].value[1] // "0"')
+            TOTAL_RATE=$(curl -s "http://localhost:9090/api/v1/query?query=$TOTAL_QUERY" | jq -r '.data.result[0].value[1] // "0"')
+            
+            if [ "$TOTAL_RATE" != "0" ] && [ "$TOTAL_RATE" != "0.0" ]; then
+              ERROR_PCT=$(echo "scale=4; ($ERROR_RATE / $TOTAL_RATE) * 100" | bc -l)
+              echo "  Error rate: $ERROR_PCT%"
+              
+              if (( $(echo "$ERROR_PCT > 5.0" | bc -l) )); then
+                echo "❌ ERROR: Production error rate too high, initiating rollback"
+                chmod +x scripts/switch-traffic.sh
+                ./scripts/switch-traffic.sh ${{ needs.deploy-canary.outputs.production_slot }} docker-compose.blue-green.yml
+                exit 1
+              fi
+            fi
+            
+            sleep 30
+          done
+          
+          echo "✅ Production metrics stable"
+      
+      # Clean up old deployment slot (optional - keep for rollback)
+      - name: Deployment complete
+        run: |
+          echo "=========================================="
+          echo "✅ Production promotion complete!"
+          echo "=========================================="
+          echo "Active Slot: ${{ needs.deploy-canary.outputs.canary_slot }}"
+          echo "Previous Slot: ${{ needs.deploy-canary.outputs.production_slot }} (kept for rollback)"
+          echo ""
+          echo "Deployment successful!"
+
+  # ============================================================================
+  # ROLLBACK - Manual workflow to rollback to previous slot
+  # ============================================================================
+  
+  rollback:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_slot != ''
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Rollback to previous slot
+        run: |
+          ROLLBACK_SLOT=${{ github.event.inputs.rollback_slot }}
+          
+          echo "=========================================="
+          echo "Rolling back to $ROLLBACK_SLOT slot..."
+          echo "=========================================="
+          
+          # Make script executable
+          chmod +x scripts/switch-traffic.sh
+          
+          # Switch traffic back
+          ./scripts/switch-traffic.sh $ROLLBACK_SLOT docker-compose.blue-green.yml
+          
+          echo "✅ Rollback complete!"

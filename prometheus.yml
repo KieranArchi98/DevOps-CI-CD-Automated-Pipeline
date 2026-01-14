@@ -18,7 +18,8 @@ rule_files:
 
 scrape_configs:
   - job_name: 'genesis-ai-chatbot'
-    scrape_interval: 15s
+    scrape_interval: 10s
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['backend:8000']
     metrics_path: '/metrics'
+
