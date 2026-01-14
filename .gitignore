@@ -43,6 +43,23 @@ next-env.d.ts
 .env
 node_modules/
 __pycache__/
+
 *.pyc
 .next/
 dist/
+
+# Sensitive files
+# Ignore Kubernetes and other secrets files
+secrets.yaml
+secrets.yml
+k8s/secrets.yaml
+k8s/secrets.yml
+**/secrets*.yaml
+**/secrets*.yml
+
+# Common private keys and certs
+*.key
+*.crt
+
+# Ignore all env variants (catch-all)
+.env.*
