@@ -44,9 +44,10 @@ COPY --from=dependencies /usr/local /usr/local
 
 # Extra cleanup in final image: remove any vendored/old jaraco artifacts left inside setuptools
 # and force-reinstall safe packages to ensure Trivy will not find the vulnerable metadata.
-RUN rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco* || true \
- && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'jaraco.context*' -exec rm -rf {} + || true \
- && pip install --upgrade --force-reinstall "jaraco.context>=6.1.0" setuptools wheel
+RUN pip install --upgrade --force-reinstall "jaraco.context>=6.1.0" wheel \
+ && rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco* || true \
+ && rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco.context-5.3.0.dist-info || true \
+ && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'jaraco.context*' -exec rm -rf {} + || true
 
 # Copy application code
 COPY app ./app

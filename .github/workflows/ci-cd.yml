@@ -86,11 +86,11 @@ jobs:
           npm test -- --coverage --watchAll=false
 
       # Build Images (also tag with GHCR names so scans and local runs match registry)
-      - run: |
-          docker build -t ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:ci ./backend
+        - run: |
+          docker build --no-cache -t ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:ci ./backend
           docker tag ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:ci genesis-backend:ci || true
-      - run: |
-          docker build -t ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:ci ./frontend
+        - run: |
+          docker build --no-cache -t ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:ci ./frontend
           docker tag ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:ci genesis-frontend:ci || true
 
       # Vulnerability Scanning
