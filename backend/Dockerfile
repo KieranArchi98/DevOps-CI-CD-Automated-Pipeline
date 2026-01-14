@@ -25,6 +25,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Explicitly upgrade jaraco.context to safe version
 RUN pip install --upgrade "jaraco.context>=6.1.0"
+# Remove any vendored jaraco.context inside setuptools and reinstall to ensure no old vendored copy remains
+RUN rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco* || true
+RUN rm -rf /usr/local/lib/python3.11/site-packages/jaraco.context-5.3.0* || true
+RUN find /usr/local/lib/python3.11/site-packages -name 'jaraco.context*' -exec rm -rf {} + || true
+RUN pip install --upgrade --force-reinstall "jaraco.context>=6.1.0"
 
 # -------- Final image --------
 FROM base AS final
