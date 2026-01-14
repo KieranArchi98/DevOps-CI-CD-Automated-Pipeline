@@ -6,22 +6,14 @@ Cache not found for input keys: trivy-binary-v0.68.1-Linux-X64
 Run actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 Syncing repository: aquasecurity/trivy
 Getting Git version info
-Temporarily overriding HOME='/home/runner/work/_temp/93b3945a-e6f2-4e03-87de-95e333edaace' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/928c2363-e04c-498e-a712-9d1cfaff4e4a' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 /usr/bin/git config --global --add safe.directory /home/runner/work/DevOps-CI-CD-Automated-Pipeline/DevOps-CI-CD-Automated-Pipeline/trivy
 Initializing the repository
 Disabling automatic garbage collection
 Setting up auth
-  /usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-  /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-  /usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-  /usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-  /usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
 Determining the default branch
 Fetching the repository
-  /usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --filter=blob:none --depth=1 origin +refs/heads/main:refs/remotes/origin/main
-  From https://github.com/aquasecurity/trivy
-   * [new branch]      main       -> origin/main
 Determining the checkout info
 Setting up sparse checkout
 Checking out the ref
@@ -39,81 +31,23 @@ Cache not found for input keys: cache-trivy-2026-01-14, cache-trivy-
 Run echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
 Run rm -f trivy_envs.txt
 Run # Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.
-  # Note: There is currently no way to distinguish between undefined variables and empty strings in GitHub Actions.
-  # This limitation affects how we handle default values and empty inputs.
-  # For more information, see: https://github.com/actions/runner/issues/924
-  
-  # The following logic implements the configuration priority described in the README:
-  #
-  # Inputs
-  # Environment Variables
-  # Config File
-  # Defaults
-  #
-  # As noted above defaults are awkward to handle as GitHub Actions will inject those values as the input
-  # if the caller doesn't provide them, thus if the input matches the default we don't set it as we
-  # can't tell the difference.  Plus if we did set it when it was the default value then it could potentially 
-  # override an external environment variable, or something in the callers configuration file, which then wouldn't 
-  # match the configuration priority that is documented.
-  set_env_var_if_provided() {
-    local var_name="$1"
-    local input_value="$2"
-    local default_value="$3"
-  
-    if [ ! -z "$input_value" ] && [ "$input_value" != "$default_value" ]; then
-      # If action was provided with explicit input by the caller set that
-      echo "export $var_name=$input_value" >> trivy_envs.txt
-    fi
-  }
-  
-  # Set environment variables, handling those with default values
-  # cf. https://aquasecurity.github.io/trivy/latest/docs/configuration/#environment-variables
-  set_env_var_if_provided "TRIVY_INPUT" "" ""
-  set_env_var_if_provided "TRIVY_EXIT_CODE" "1" ""
-  set_env_var_if_provided "TRIVY_IGNORE_UNFIXED" "true" "false"
-  set_env_var_if_provided "TRIVY_PKG_TYPES" "os,library" "os,library"
-  set_env_var_if_provided "TRIVY_SEVERITY" "HIGH,CRITICAL" "UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL"
-  set_env_var_if_provided "TRIVY_FORMAT" "table" "table"
-  set_env_var_if_provided "TRIVY_TEMPLATE" "" ""
-  set_env_var_if_provided "TRIVY_OUTPUT" "" ""
-  set_env_var_if_provided "TRIVY_SKIP_DIRS" "" ""
-  set_env_var_if_provided "TRIVY_SKIP_FILES" "" ""
-  set_env_var_if_provided "TRIVY_TIMEOUT" "" ""
-  set_env_var_if_provided "TRIVY_IGNORE_POLICY" "" ""
-  set_env_var_if_provided "TRIVY_QUIET" "" ""
-  set_env_var_if_provided "TRIVY_LIST_ALL_PKGS" "false" "false"
-  set_env_var_if_provided "TRIVY_SCANNERS" "" ""
-  set_env_var_if_provided "TRIVY_CONFIG" "" ""
-  set_env_var_if_provided "TRIVY_TF_VARS" "" ""
-  set_env_var_if_provided "TRIVY_DOCKER_HOST" "" ""
-  shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
-  env:
-    pythonLocation: /opt/hostedtoolcache/Python/3.11.14/x64
-    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib/pkgconfig
-    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
-    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
-    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.14/x64
-    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.14/x64/lib
 Run entrypoint.sh
 Running Trivy with options: trivy image genesis-backend:ci
-2026-01-14T18:20:11Z	INFO	[vulndb] Need to update DB
-2026-01-14T18:20:11Z	INFO	[vulndb] Downloading vulnerability DB...
-2026-01-14T18:20:11Z	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
-7.66 MiB / 80.07 MiB [------>________________________________________________________] 9.56% ? p/s ?34.26 MiB / 80.07 MiB [-------------------------->__________________________________] 42.80% ? p/s ?64.07 MiB / 80.07 MiB [------------------------------------------------>____________] 80.03% ? p/s ?80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 120.58 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 120.58 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 120.58 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 112.80 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 112.80 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 112.80 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [--------------------------------------------->] 100.00% 105.52 MiB p/s ETA 0s80.07 MiB / 80.07 MiB [-
-2026-01-14T18:20:15Z	INFO	[vuln] Vulnerability scanning is enabled
-2026-01-14T18:20:15Z	INFO	[secret] Secret scanning is enabled
-2026-01-14T18:20:15Z	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
-2026-01-14T18:20:15Z	INFO	[secret] Please see https://trivy.dev/docs/v0.68/guide/scanner/secret#recommendation for faster secret detection
-2026-01-14T18:20:20Z	INFO	[python] Licenses acquired from one or more METADATA files may be subject to additional terms. Use `--debug` flag to see all affected packages.
-2026-01-14T18:20:20Z	INFO	Detected OS	family="debian" version="13.3"
-2026-01-14T18:20:20Z	INFO	[debian] Detecting vulnerabilities...	os_version="13" pkg_num=87
-2026-01-14T18:20:20Z	INFO	Number of language-specific files	num=1
-2026-01-14T18:20:20Z	INFO	[python-pkg] Detecting vulnerabilities...
-2026-01-14T18:20:20Z	WARN	Using severities from other vendors for some vulnerabilities. Read https://trivy.dev/docs/v0.68/guide/scanner/vulnerability#severity-selection for details.
-2026-01-14T18:20:20Z	INFO	Table result includes only package filenames. Use '--format json' option to get the full path to the package file.
-📣 Notices:
-  - Version 0.68.2 of Trivy is now available, current version is 0.68.1
-To suppress version checks, run Trivy scans with the --skip-version-check flag
+2026-01-14T18:51:53Z	INFO	[vulndb] Need to update DB
+2026-01-14T18:51:53Z	INFO	[vulndb] Downloading vulnerability DB...
+2026-01-14T18:51:53Z	INFO	[vulndb] Downloading artifact...	repo="mirror.gcr.io/aquasec/trivy-db:2"
+4.84 MiB / 80.06 MiB [--->___________________________________________________________] 6.05% ? p/s ?33.54 MiB / 80.06 MiB [------------------------->___________________________________] 41.89% ? p/s ?62.27 MiB / 80.06 MiB [----------------------------------------------->_____________] 77.79% ? p/s ?80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 125.35 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 125.35 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 125.35 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 117.26 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 117.26 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 117.26 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [--------------------------------------------->] 100.00% 109.70 MiB p/s ETA 0s80.06 MiB / 80.06 MiB [-
+2026-01-14T18:51:58Z	INFO	[vuln] Vulnerability scanning is enabled
+2026-01-14T18:51:58Z	INFO	[secret] Secret scanning is enabled
+2026-01-14T18:51:58Z	INFO	[secret] If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2026-01-14T18:51:58Z	INFO	[secret] Please see https://trivy.dev/docs/v0.68/guide/scanner/secret#recommendation for faster secret detection
+2026-01-14T18:52:02Z	INFO	[python] Licenses acquired from one or more METADATA files may be subject to additional terms. Use `--debug` flag to see all affected packages.
+2026-01-14T18:52:03Z	INFO	Detected OS	family="debian" version="13.3"
+2026-01-14T18:52:03Z	INFO	[debian] Detecting vulnerabilities...	os_version="13" pkg_num=87
+2026-01-14T18:52:03Z	INFO	Number of language-specific files	num=1
+2026-01-14T18:52:03Z	INFO	[python-pkg] Detecting vulnerabilities...
+2026-01-14T18:52:03Z	WARN	Using severities from other vendors for some vulnerabilities. Read https://trivy.dev/docs/v0.68/guide/scanner/vulnerability#severity-selection for details.
+2026-01-14T18:52:03Z	INFO	Table result includes only package filenames. Use '--format json' option to get the full path to the package file.
 Report Summary
 ┌──────────────────────────────────────────────────────────────────────────────────┬────────────┬─────────────────┬─────────┐
 │                                      Target                                      │    Type    │ Vulnerabilities │ Secrets │
@@ -130,6 +64,9 @@ Report Summary
 │ TA                                                                               │            │                 │         │
 ├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┼─────────┤
 │ usr/local/lib/python3.11/site-packages/black-25.12.0.dist-info/METADATA          │ python-pkg │        0        │    -    │
+📣 Notices:
+  - Version 0.68.2 of Trivy is now available, current version is 0.68.1
+To suppress version checks, run Trivy scans with the --skip-version-check flag
 ├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┼─────────┤
 │ usr/local/lib/python3.11/site-packages/certifi-2026.1.4.dist-info/METADATA       │ python-pkg │        0        │    -    │
 ├──────────────────────────────────────────────────────────────────────────────────┼────────────┼─────────────────┼─────────┤
@@ -299,4 +236,3 @@ Total: 1 (HIGH: 1, CRITICAL: 0)
 └───────────────────────────┴─────────────────────┴──────────┴────────┴───────────────────┴───────────────┴───────────────────────────────────────────────────┘
 Error: Process completed with exit code 1.
 Run rm -f trivy_envs.txt
-  
