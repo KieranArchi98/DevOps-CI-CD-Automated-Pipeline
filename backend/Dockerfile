@@ -23,6 +23,9 @@ RUN pip install --upgrade pip setuptools wheel
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Explicitly upgrade jaraco.context to safe version
+RUN pip install --upgrade "jaraco.context>=6.1.0"
+
 # -------- Final image --------
 FROM base AS final
 
