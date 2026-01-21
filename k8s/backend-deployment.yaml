@@ -3,7 +3,12 @@ kind: Deployment
 metadata:
   name: llm-backend
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: llm-backend
@@ -14,12 +19,24 @@ spec:
     spec:
       containers:
         - name: llm-backend
-          image: llm-chatbot-backend:local
+          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest
           ports:
             - containerPort: 8000
           env:
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: openai-key
-                  key: key
+                  name: app-secrets
+                  key: OPENAI_API_KEY
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MONGO_URI
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: MONGO_DB
+            - name: REDIS_URL
+              value: redis://redis:6379/0

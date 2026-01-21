@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: llm-frontend
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       app: llm-frontend
@@ -14,6 +16,6 @@ spec:
     spec:
       containers:
         - name: llm-frontend
-          image: llm-chatbot-frontend:local
+          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:latest
           ports:
             - containerPort: 80
