@@ -1,5 +1,7 @@
 from fastapi import APIRouter
-from ..controllers import conversation_controller, chat_controller, metrics_controller
+
+from ..controllers import (chat_controller, conversation_controller,
+                           metrics_controller)
 
 api_router = APIRouter()
 

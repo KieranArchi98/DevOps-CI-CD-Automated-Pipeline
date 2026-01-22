@@ -1,8 +1,10 @@
-from ..utils.db import db
-from ..schemas.conversation import Conversation, Message
-from typing import List, Optional
-from bson import ObjectId
 from datetime import datetime
+from typing import List, Optional
+
+from bson import ObjectId
+
+from ..schemas.conversation import Conversation, Message
+from ..utils.db import db
 from .metrics_service import MetricsService
 
 

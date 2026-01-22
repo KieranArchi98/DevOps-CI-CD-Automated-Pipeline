@@ -1,10 +1,11 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-from ..services.conversation_service import ConversationService
-from ..services.llm_service import LLMService
-from ..schemas.conversation import Message
 from datetime import datetime
 
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+from ..schemas.conversation import Message
+from ..services.conversation_service import ConversationService
+from ..services.llm_service import LLMService
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 

@@ -5,8 +5,9 @@ This service provides centralized metrics tracking for the Genesis AI Chatbot.
 All metrics are exposed in Prometheus format via the /metrics endpoint.
 """
 
-from prometheus_client import Counter, Histogram, Gauge, Info
-from typing import Dict, Any
+from typing import Any, Dict
+
+from prometheus_client import Counter, Gauge, Histogram, Info
 
 
 class MetricsService:

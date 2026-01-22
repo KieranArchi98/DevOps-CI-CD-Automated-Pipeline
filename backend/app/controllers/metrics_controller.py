@@ -6,6 +6,7 @@ Provides endpoints for metrics exposure and summary information.
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+
 from ..services.metrics_service import MetricsService
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])

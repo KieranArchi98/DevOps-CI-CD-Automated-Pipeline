@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from ..services.conversation_service import ConversationService
-from ..schemas.conversation import Conversation, Message
 from typing import List
 
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from ..schemas.conversation import Conversation, Message
+from ..services.conversation_service import ConversationService
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 

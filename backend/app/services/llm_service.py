@@ -1,8 +1,10 @@
-import os
 import asyncio
-import openai
+import os
 import time
+
+import openai
 from dotenv import load_dotenv
+
 from .metrics_service import MetricsService
 
 load_dotenv()

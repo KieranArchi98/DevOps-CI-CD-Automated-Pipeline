@@ -1,10 +1,12 @@
+import time
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .api.api_router import api_router
-from dotenv import load_dotenv
-from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_client import Counter, Histogram
-import time
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from .api.api_router import api_router
 
 load_dotenv()
 
