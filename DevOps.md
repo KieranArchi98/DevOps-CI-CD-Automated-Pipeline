@@ -517,6 +517,83 @@ Error deltas between versions
 
 This is where observability + CI/CD fully connect.
 
+🔹 Remaining Phases After Phase 11
+
+You’ve essentially completed Phase 11 — Progressive Delivery with rolling updates, canary releases, and promotion. Here’s what’s left:
+
+Phase 12 — Scalability & Performance Layer
+
+Goal: Make your system ready for real traffic.
+
+What’s involved:
+
+Redis for caching, rate-limiting, async task queue support.
+
+Background workers for offloading LLM processing (e.g., Celery, RQ, or Python asyncio workers).
+
+Horizontal scaling:
+
+Kubernetes Deployments: replicas >1
+
+HPA (Horizontal Pod Autoscaler) based on CPU/memory/metrics
+
+Load testing & stress testing.
+
+Optimize database connections and caching for real-world workloads.
+
+Importance: ⭐⭐⭐⭐
+Without this, your system can’t handle traffic spikes, and canary promotion metrics may not reflect real usage. This is essential for production-grade deployment.
+
+Phase 13 — Production Hardening
+
+Goal: Make your application resilient and professional.
+
+What’s involved:
+
+Health checks & readiness probes for Kubernetes.
+
+Liveness probes: auto-restart failing containers.
+
+Graceful shutdowns for clean pod termination.
+
+Structured logging (JSON logs, log aggregation).
+
+Alerts via Slack/Email when metrics cross thresholds.
+
+Secrets and config security review.
+
+Importance: ⭐⭐⭐⭐
+Critical for reliability, observability, and safety in production. Without this, your deployment is fragile.
+
+Phase 14 — Infrastructure as Code (IaC) with Terraform
+
+Goal: Fully automate deployment of your infrastructure and environment, not just your app.
+
+What’s involved:
+
+Write Terraform manifests for:
+
+Kubernetes cluster (if cloud-managed, e.g., AWS EKS)
+
+Persistent storage
+
+Redis, Prometheus, Grafana
+
+Secrets
+
+Container registry connections
+
+Deploy everything reproducibly:
+
+terraform plan → shows changes
+
+terraform apply → creates resources
+
+terraform destroy → destroys everything safely
+
+Importance: ⭐⭐⭐⭐⭐
+High. This is what separates manual cluster tinkering from professional, repeatable infrastructure management.
+
 📈 Phase 12 — Scalability & Performance Layer
 
 Goal:

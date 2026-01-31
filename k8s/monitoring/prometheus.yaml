@@ -10,9 +10,18 @@ data:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-      - job_name: 'llm-backend'
+      - job_name: 'llm-backend-stable'
         static_configs:
-          - targets: ['llm-backend:8000']
+          - targets: ['llm-backend-stable-svc:8000']
+      - job_name: 'llm-backend-canary'
+        static_configs:
+          - targets: ['llm-backend-canary-svc:8000']
+      - job_name: 'llm-frontend-stable'
+        static_configs:
+          - targets: ['llm-frontend-stable-svc:80']
+      - job_name: 'llm-frontend-canary'
+        static_configs:
+          - targets: ['llm-frontend-canary-svc:80']
 
 ---
 apiVersion: apps/v1

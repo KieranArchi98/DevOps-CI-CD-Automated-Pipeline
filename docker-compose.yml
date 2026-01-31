@@ -60,6 +60,31 @@ services:
     depends_on:
       - prometheus
 
+  celery_worker:
+    build:
+      context: ./backend
+    container_name: llm-celery-worker
+    command: celery -A app.core.celery_app worker --loglevel=info
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB=${MONGO_DB}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENV=${ENV}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - redis
+      - backend
+
+  flower:
+    image: mher/flower
+    container_name: llm-flower
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=${REDIS_URL}
+    depends_on:
+      - redis
+
 volumes:
   prometheus_data:
   grafana_data:

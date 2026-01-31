@@ -12,6 +12,54 @@ load_dotenv()
 
 app = FastAPI()
 
+# Rate Limiting & Redis
+from fastapi_limiter import FastAPILimiter
+import redis.asyncio as redis
+import os
+
+@app.on_event("startup")
+async def startup():
+    redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
+    
+    # Simple check: if we are running locally and 'redis' host is not resolvable,
+    # try localhost. Or we just trust the env var if set.
+    # The common issue is .env has 'redis://redis:6379/0' which works in Docker
+    # but fails locally.
+    
+    try:
+        r = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+        # Test connection
+        await r.ping()
+        await FastAPILimiter.init(r)
+        print(f"Connected to Redis at {redis_url}")
+    except Exception as e:
+        print(f"Warning: Failed to connect to Redis at {redis_url}: {e}")
+        print("Attempting fallback to localhost...")
+        try:
+            fallback_url = "redis://localhost:6379/0"
+            r = redis.from_url(fallback_url, encoding="utf-8", decode_responses=True)
+            await r.ping()
+            await FastAPILimiter.init(r)
+            print(f"Connected to Redis at {fallback_url}")
+        except Exception as e2:
+            print(f"Error: Could not connect to Redis: {e2}")
+            print("Rate limiting will not work.")
+
+# Celery Tasks
+from .tasks import process_llm_analysis
+from .core.limiter import SafeRateLimiter
+from fastapi import Depends
+
+@app.post("/api/analyze", dependencies=[Depends(SafeRateLimiter(times=5, seconds=60))])
+async def trigger_analysis(text: str):
+    """
+    Trigger a background analysis task. 
+    Rate limited to 5 requests per minute.
+    """
+    task = process_llm_analysis.delay(text)
+    return {"task_id": task.id, "status": "processing"}
+
+
 # Custom HTTP metrics for deployment verification
 http_requests_total = Counter(
     "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]

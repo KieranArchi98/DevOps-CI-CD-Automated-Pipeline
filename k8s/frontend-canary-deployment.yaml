@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llm-frontend
+  name: llm-frontend-canary
   labels:
     app: llm-frontend
-    version: stable
+    version: canary
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -15,12 +15,12 @@ spec:
   selector:
     matchLabels:
       app: llm-frontend
-      version: stable
+      version: canary
   template:
     metadata:
       labels:
         app: llm-frontend
-        version: stable
+        version: canary
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "80"
@@ -31,10 +31,3 @@ spec:
           image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:${IMAGE_TAG}
           ports:
             - containerPort: 80
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "256Mi"
-              cpu: "200m"

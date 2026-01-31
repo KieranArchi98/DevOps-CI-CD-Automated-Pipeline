@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llm-backend
+  name: llm-backend-canary
   labels:
     app: llm-backend
-    version: stable
+    version: canary
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -15,12 +15,12 @@ spec:
   selector:
     matchLabels:
       app: llm-backend
-      version: stable
+      version: canary
   template:
     metadata:
       labels:
         app: llm-backend
-        version: stable
+        version: canary
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
@@ -31,13 +31,6 @@ spec:
           image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${IMAGE_TAG}
           ports:
             - containerPort: 8000
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
           env:
             - name: OPENAI_API_KEY
               valueFrom:

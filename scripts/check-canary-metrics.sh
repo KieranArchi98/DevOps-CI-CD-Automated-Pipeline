@@ -4,11 +4,11 @@ set -e
 # check-canary-metrics.sh
 # Validates canary deployment metrics against thresholds and production baseline
 #
-# Usage: ./check-canary-metrics.sh <canary_slot> <production_slot> <prometheus_url>
-# Example: ./check-canary-metrics.sh backend-green backend-blue http://localhost:9090
+# Usage: ./check-canary-metrics.sh <canary_selector> <production_selector> <prometheus_url>
+# Example: ./check-canary-metrics.sh 'app="llm-backend",version="canary"' 'app="llm-backend",version="stable"' http://localhost:9090
 
-CANARY_SLOT=${1:-backend-green}
-PRODUCTION_SLOT=${2:-backend-blue}
+CANARY_SELECTOR=${1:-app="llm-backend",version="canary"}
+PRODUCTION_SELECTOR=${2:-app="llm-backend",version="stable"}
 PROMETHEUS_URL=${3:-http://localhost:9090}
 
 # Thresholds
@@ -20,8 +20,8 @@ LATENCY_MULTIPLIER=1.5            # Canary latency must not exceed 1.5x producti
 echo "=========================================="
 echo "Canary Metrics Validation"
 echo "=========================================="
-echo "Canary Slot: $CANARY_SLOT"
-echo "Production Slot: $PRODUCTION_SLOT"
+echo "Canary Selector: $CANARY_SELECTOR"
+echo "Production Selector: $PRODUCTION_SELECTOR"
 echo "Prometheus URL: $PROMETHEUS_URL"
 echo ""
 
@@ -42,7 +42,7 @@ compare_float() {
 # ============================================================================
 
 echo "1. Checking canary availability..."
-CANARY_UP=$(query_prometheus "up{job=\"${CANARY_SLOT}\"}")
+CANARY_UP=$(query_prometheus "up{${CANARY_SELECTOR}}")
 
 if [ "$CANARY_UP" != "1" ]; then
     echo "❌ FAIL: Canary slot is not up (value: $CANARY_UP)"
@@ -58,8 +58,8 @@ echo ""
 echo "2. Checking canary error rate..."
 
 # Query error rate for canary
-ERROR_QUERY="rate(http_requests_total{job=\"${CANARY_SLOT}\",status=~\"5..\"}[2m])"
-TOTAL_QUERY="rate(http_requests_total{job=\"${CANARY_SLOT}\"}[2m])"
+ERROR_QUERY="rate(http_requests_total{${CANARY_SELECTOR},status=~\"5..\"}[2m])"
+TOTAL_QUERY="rate(http_requests_total{${CANARY_SELECTOR}}[2m])"
 
 CANARY_ERRORS=$(query_prometheus "$ERROR_QUERY")
 CANARY_TOTAL=$(query_prometheus "$TOTAL_QUERY")
@@ -79,8 +79,8 @@ if [ "$CANARY_TOTAL" != "0" ] && [ "$CANARY_TOTAL" != "0.0" ]; then
     fi
     
     # Compare with production
-    PROD_ERRORS=$(query_prometheus "rate(http_requests_total{job=\"${PRODUCTION_SLOT}\",status=~\"5..\"}[2m])")
-    PROD_TOTAL=$(query_prometheus "rate(http_requests_total{job=\"${PRODUCTION_SLOT}\"}[2m])")
+    PROD_ERRORS=$(query_prometheus "rate(http_requests_total{${PRODUCTION_SELECTOR},status=~\"5..\"}[2m])")
+    PROD_TOTAL=$(query_prometheus "rate(http_requests_total{${PRODUCTION_SELECTOR}}[2m])")
     
     if [ "$PROD_TOTAL" != "0" ] && [ "$PROD_TOTAL" != "0.0" ]; then
         PROD_ERROR_PCT=$(echo "scale=4; ($PROD_ERRORS / $PROD_TOTAL) * 100" | bc -l)
@@ -108,7 +108,7 @@ echo ""
 echo "3. Checking canary latency..."
 
 # Query P95 latency for canary
-LATENCY_QUERY="histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"${CANARY_SLOT}\"}[2m]))"
+LATENCY_QUERY="histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{${CANARY_SELECTOR}}[2m]))"
 CANARY_LATENCY=$(query_prometheus "$LATENCY_QUERY")
 
 echo "  Canary P95 latency: $CANARY_LATENCY seconds"
@@ -121,7 +121,7 @@ if [ "$CANARY_LATENCY" != "0" ] && [ "$CANARY_LATENCY" != "0.0" ]; then
     fi
     
     # Compare with production
-    PROD_LATENCY=$(query_prometheus "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"${PRODUCTION_SLOT}\"}[2m]))")
+    PROD_LATENCY=$(query_prometheus "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{${PRODUCTION_SELECTOR}}[2m]))")
     
     if [ "$PROD_LATENCY" != "0" ] && [ "$PROD_LATENCY" != "0.0" ]; then
         ALLOWED_LATENCY=$(echo "scale=4; $PROD_LATENCY * $LATENCY_MULTIPLIER" | bc -l)

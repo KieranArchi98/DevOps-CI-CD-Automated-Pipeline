@@ -1,44 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llm-backend
+  name: llm-worker
   labels:
-    app: llm-backend
+    app: llm-worker
     version: stable
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+  replicas: 1
   selector:
     matchLabels:
-      app: llm-backend
-      version: stable
+      app: llm-worker
   template:
     metadata:
       labels:
-        app: llm-backend
-        version: stable
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8000"
-        prometheus.io/path: "/metrics"
+        app: llm-worker
     spec:
       containers:
-        - name: llm-backend
+        - name: llm-worker
           image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${IMAGE_TAG}
-          ports:
-            - containerPort: 8000
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
+          command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info"]
           env:
+            - name: REDIS_URL
+              value: redis://redis:6379/0
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -54,5 +37,10 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: MONGO_DB
-            - name: REDIS_URL
-              value: redis://redis:6379/0
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

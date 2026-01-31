@@ -29,6 +29,19 @@ scrape_configs:
       - targets: ["backend-green:8000"]
     metrics_path: "/metrics"
 
+  # Scrape both blue and green frontend slots
+  - job_name: "frontend-blue"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["frontend-blue:80"]
+    metrics_path: "/metrics"
+
+  - job_name: "frontend-green"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["frontend-green:80"]
+    metrics_path: "/metrics"
+
   # Scrape Nginx proxy
   - job_name: "nginx"
     scrape_interval: 15s

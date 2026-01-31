@@ -167,6 +167,10 @@ jobs:
   # CANARY DEPLOYMENT - Deploy to inactive slot and validate metrics
   # ============================================================================
 
+  # ============================================================================
+  # CANARY DEPLOYMENT - Deploy to inactive slot and validate metrics
+  # ============================================================================
+
   deploy-canary:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -177,235 +181,152 @@ jobs:
       MONGO_DB: ${{ secrets.MONGO_DB }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
-      REDIS_URL: redis://redis:6379/0
-      ENV: prod
-      PROMETHEUS_STORAGE: /prometheus
-      BACKEND_VERSION: ${{ github.sha }}
-      FRONTEND_VERSION: ${{ github.sha }}
-    outputs:
-      canary_slot: ${{ steps.determine-slot.outputs.canary_slot }}
-      production_slot: ${{ steps.determine-slot.outputs.production_slot }}
     steps:
       - uses: actions/checkout@v3
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          version: 'latest'
 
-      # Determine which slot to deploy to (inactive slot becomes canary)
-      - name: Determine deployment slots
-        id: determine-slot
+      - name: Set Kubeconfig
         run: |
-          # Check which slot is currently active
-          ACTIVE_SLOT=$(curl -sf http://localhost:8081/active-slot 2>/dev/null || echo "blue")
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
-          if [ "$ACTIVE_SLOT" == "blue" ]; then
-            CANARY_SLOT="green"
-            PRODUCTION_SLOT="blue"
-          else
-            CANARY_SLOT="blue"
-            PRODUCTION_SLOT="green"
-          fi
-
-          echo "canary_slot=$CANARY_SLOT" >> $GITHUB_OUTPUT
-          echo "production_slot=$PRODUCTION_SLOT" >> $GITHUB_OUTPUT
-          echo "Canary Slot: $CANARY_SLOT"
-          echo "Production Slot: $PRODUCTION_SLOT"
-
-      # Deploy to canary slot
-      - name: Deploy to canary slot
+      # Deploy Canary Version (1 replica) with env substitution for IMAGE_TAG
+      - name: Deploy Canary
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
         run: |
-          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          echo "Deploying Canary versions with tag $IMAGE_TAG..."
+          # Deploy Services for Monitoring
+          kubectl apply -f k8s/backend-canary-service.yaml
+          kubectl apply -f k8s/backend-stable-service.yaml
+          kubectl apply -f k8s/frontend-canary-service.yaml
+          kubectl apply -f k8s/frontend-stable-service.yaml
+          
+          # Deploy Infrastructure (Redis, HPA)
+          kubectl apply -f k8s/redis-deployment.yaml
+          kubectl apply -f k8s/redis-service.yaml
+          kubectl apply -f k8s/backend-hpa.yaml
+          kubectl apply -f k8s/frontend-hpa.yaml
+          
+          # Deploy Canary Deployments
+          envsubst < k8s/backend-canary-deployment.yaml | kubectl apply -f -
+          envsubst < k8s/frontend-canary-deployment.yaml | kubectl apply -f -
 
-          echo "Deploying to $CANARY_SLOT slot..."
-
-          # Start canary backend and frontend
-          docker-compose -f docker-compose.blue-green.yml pull backend-${CANARY_SLOT} frontend-${CANARY_SLOT}
-          docker-compose -f docker-compose.blue-green.yml up -d backend-${CANARY_SLOT} frontend-${CANARY_SLOT}
-
-      # Wait for canary to be healthy
-      - name: Wait for canary health
+      # Wait for Canary to be ready
+      - name: Wait for Canary Rollout
         run: |
-          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
+          echo "Waiting for canary deployments to be ready..."
+          kubectl rollout status deployment/llm-backend-canary --timeout=60s
+          kubectl rollout status deployment/llm-frontend-canary --timeout=60s
 
-          echo "Waiting for canary ($CANARY_SLOT) to be healthy..."
-          max_attempts=60
-          attempt=0
-
-          while [ $attempt -lt $max_attempts ]; do
-            BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' llm-backend-${CANARY_SLOT} 2>/dev/null || echo "unknown")
-            
-            if [ "$BACKEND_HEALTH" == "healthy" ]; then
-              echo "✅ Canary backend is healthy!"
-              break
-            fi
-            
-            echo "Attempt $((attempt + 1))/$max_attempts - Backend status: $BACKEND_HEALTH"
-            sleep 5
-            attempt=$((attempt + 1))
-          done
-
-          if [ $attempt -eq $max_attempts ]; then
-            echo "❌ ERROR: Canary backend failed to become healthy"
-            exit 1
-          fi
-
-      # Wait for Prometheus to scrape canary metrics
-      - name: Wait for metrics collection
+      # Verify Metrics (Port-forward Prometheus)
+      - name: Verify Canary Metrics
         run: |
-          echo "Waiting 30 seconds for Prometheus to scrape canary metrics..."
-          sleep 30
+          echo "Setting up port-forward to Prometheus..."
+          # Start port-forward in background
+          kubectl port-forward svc/prometheus-service 9090:9090 &
+          PID=$!
+          
+          echo "Waiting for connection..."
+          sleep 5
 
-      # Generate test traffic to canary
-      - name: Generate canary traffic
-        run: |
-          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
-          CANARY_BACKEND="llm-backend-${CANARY_SLOT}"
-
-          echo "Generating test traffic to canary..."
-
-          # Get canary backend IP
-          CANARY_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CANARY_BACKEND)
-
-          # Generate traffic directly to canary (bypass nginx)
-          for i in {1..50}; do
-            docker exec llm-nginx curl -sf http://${CANARY_IP}:8000/health > /dev/null || true
-            docker exec llm-nginx curl -sf http://${CANARY_IP}:8000/api/metrics/health > /dev/null || true
-          done
-
-          echo "Waiting 20 seconds for metrics to be scraped..."
-          sleep 20
-
-      # Validate canary metrics
-      - name: Validate canary metrics
-        run: |
-          CANARY_SLOT=${{ steps.determine-slot.outputs.canary_slot }}
-          PRODUCTION_SLOT=${{ steps.determine-slot.outputs.production_slot }}
-
-          echo "Validating canary metrics..."
-
-          # Make script executable
+          echo "Validating metrics..."
           chmod +x scripts/check-canary-metrics.sh
-
-          # Run metrics validation
-          ./scripts/check-canary-metrics.sh "backend-${CANARY_SLOT}" "backend-${PRODUCTION_SLOT}" "http://localhost:9090"
-
-      # Canary deployment successful
-      - name: Canary deployment complete
-        run: |
-          echo "=========================================="
-          echo "✅ Canary deployment successful!"
-          echo "=========================================="
-          echo "Canary Slot: ${{ steps.determine-slot.outputs.canary_slot }}"
-          echo "All metrics validation passed"
-          echo "Ready for production promotion"
-          echo ""
+          
+          echo "--- Checking Backend Metrics ---"
+          ./scripts/check-canary-metrics.sh 'job="llm-backend-canary"' 'job="llm-backend-stable"' "http://localhost:9090"
+          
+          echo "--- Checking Frontend Metrics ---"
+          ./scripts/check-canary-metrics.sh 'job="llm-frontend-canary"' 'job="llm-frontend-stable"' "http://localhost:9090"
+          
+          # Kill port-forward
+          kill $PID
 
   # ============================================================================
-  # PRODUCTION PROMOTION - Switch traffic to canary slot
+  # PRODUCTION PROMOTION - Rolling Update
   # ============================================================================
 
   promote-to-production:
-    needs: deploy-canary
+    needs: [deploy-canary, build-and-push]
     runs-on: ubuntu-latest
     environment:
       name: production
-    env:
-      MONGO_URI: ${{ secrets.MONGO_URI }}
-      MONGO_DB: ${{ secrets.MONGO_DB }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
-      REDIS_URL: redis://redis:6379/0
-      ENV: prod
-      PROMETHEUS_STORAGE: /prometheus
     steps:
       - uses: actions/checkout@v3
 
-      # Switch traffic to canary slot
-      - name: Switch traffic to new slot
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Set Kubeconfig
         run: |
-          CANARY_SLOT=${{ needs.deploy-canary.outputs.canary_slot }}
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
-          echo "Switching production traffic to $CANARY_SLOT slot..."
-
-          # Make script executable
-          chmod +x scripts/switch-traffic.sh
-
-          # Switch traffic
-          ./scripts/switch-traffic.sh $CANARY_SLOT docker-compose.blue-green.yml
-
-      # Monitor production metrics for 5 minutes
-      - name: Monitor production metrics
+      # Apply Stable Manifests (Rolling Update)
+      - name: Deploy Stable Rolling Update
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
         run: |
-          CANARY_SLOT=${{ needs.deploy-canary.outputs.canary_slot }}
+          echo "Promoting to stable (Rolling Update) with tag $IMAGE_TAG..."
+          envsubst < k8s/backend-deployment.yaml | kubectl apply -f -
+          envsubst < k8s/frontend-deployment.yaml | kubectl apply -f -
+          envsubst < k8s/worker-deployment.yaml | kubectl apply -f -
+          
+          echo "Waiting for stable rollout..."
+          kubectl rollout status deployment/llm-backend --timeout=60s
+          kubectl rollout status deployment/llm-frontend --timeout=60s
+          kubectl rollout status deployment/llm-worker --timeout=60s
 
-          echo "Monitoring production metrics for 5 minutes..."
-
-          for i in {1..10}; do
-            echo "Check $i/10 ($(($i * 30)) seconds elapsed)"
-            
-            # Check error rate
-            ERROR_QUERY="rate(http_requests_total{job=\"backend-${CANARY_SLOT}\",status=~\"5..\"}[1m])"
-            TOTAL_QUERY="rate(http_requests_total{job=\"backend-${CANARY_SLOT}\"}[1m])"
-            
-            ERROR_RATE=$(curl -s "http://localhost:9090/api/v1/query?query=$ERROR_QUERY" | jq -r '.data.result[0].value[1] // "0"')
-            TOTAL_RATE=$(curl -s "http://localhost:9090/api/v1/query?query=$TOTAL_QUERY" | jq -r '.data.result[0].value[1] // "0"')
-            
-            if [ "$TOTAL_RATE" != "0" ] && [ "$TOTAL_RATE" != "0.0" ]; then
-              ERROR_PCT=$(echo "scale=4; ($ERROR_RATE / $TOTAL_RATE) * 100" | bc -l)
-              echo "  Error rate: $ERROR_PCT%"
-              
-              if (( $(echo "$ERROR_PCT > 5.0" | bc -l) )); then
-                echo "❌ ERROR: Production error rate too high, initiating rollback"
-                chmod +x scripts/switch-traffic.sh
-                ./scripts/switch-traffic.sh ${{ needs.deploy-canary.outputs.production_slot }} docker-compose.blue-green.yml
-                exit 1
-              fi
-            fi
-            
-            sleep 30
-          done
-
-          echo "✅ Production metrics stable"
-
-      # Clean up old deployment slot (optional - keep for rollback)
-      - name: Deployment complete
+      # Cleanup Canary
+      - name: Remove Canary
         run: |
-          echo "=========================================="
-          echo "✅ Production promotion complete!"
-          echo "=========================================="
-          echo "Active Slot: ${{ needs.deploy-canary.outputs.canary_slot }}"
-          echo "Previous Slot: ${{ needs.deploy-canary.outputs.production_slot }} (kept for rollback)"
-          echo ""
-          echo "Deployment successful!"
+          echo "Removing canary deployments..."
+          kubectl delete -f k8s/backend-canary-deployment.yaml --ignore-not-found=true
+          kubectl delete -f k8s/frontend-canary-deployment.yaml --ignore-not-found=true
+
+      - name: Deployment Complete
+        run: |
+          echo "✅ Rolling Update Complete!"
 
   # ============================================================================
-  # ROLLBACK - Manual workflow to rollback to previous slot
+  # ROLLBACK - Kubernetes Rollout Undo
   # ============================================================================
 
   rollback:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.rollback_slot != ''
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment:
       name: production
     steps:
       - uses: actions/checkout@v3
 
-      - name: Rollback to previous slot
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Set Kubeconfig
         run: |
-          ROLLBACK_SLOT=${{ github.event.inputs.rollback_slot }}
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
-          echo "=========================================="
-          echo "Rolling back to $ROLLBACK_SLOT slot..."
-          echo "=========================================="
-
-          # Make script executable
-          chmod +x scripts/switch-traffic.sh
-
-          # Switch traffic back
-          ./scripts/switch-traffic.sh $ROLLBACK_SLOT docker-compose.blue-green.yml
-
-          echo "✅ Rollback complete!"
+      - name: Rollback Deployment
+        run: |
+          echo "Rolling back backend and frontend..."
+          kubectl rollout undo deployment/llm-backend
+          kubectl rollout undo deployment/llm-frontend
+          
+          echo "Waiting for rollback..."
+          kubectl rollout status deployment/llm-backend --timeout=60s
+          kubectl rollout status deployment/llm-frontend --timeout=60s
+          
+          echo "✅ Rollback Complete"

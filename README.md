@@ -1,203 +1,108 @@
-# Genesis AI Chatbot
+# 🌌 Genesis AI Chatbot (DevOps Edition)
 
-Genesis AI Chatbot is a full-stack LLM-driven conversational assistant built as a learning and demonstration project. It pairs a Next.js + Tailwind frontend with a FastAPI backend that calls the OpenAI ChatGPT API. The repo is also used to demonstrate containerization (Docker), local development with Docker Compose, Kubernetes manifests, and a sample CI/CD pipeline.
+![Genesis Welcome Screen](assets/image1.PNG)
 
----
-
-## Goals
-
-- Provide a minimal, production-structured example of an LLM-powered web app.
-- Show how to connect a Next.js UI to a Python FastAPI backend that proxies requests to OpenAI's ChatGPT API.
-- Demonstrate containerization with Docker, local development with Docker Compose, and deployment manifests for Kubernetes.
-- Integrate an industry-standard CI/CD workflow (GitHub Actions) to automate build and deployment steps.
+### *Consciousness floating between realities, where thoughts become celestial conversations.*
 
 ---
 
-## Table of Contents
+## 🚀 Overview
+**Genesis AI Chatbot** is a production-grade, full-stack AI platform designed not just as a chatbot, but as a **comprehensive DevOps & CI/CD showcase**. This project demonstrates the transition from a local development environment to a scalable, monitored, and securely deployed Kubernetes-orchestrated system.
 
-1. Features
-2. Tech stack
-3. Architecture overview
-4. Local development
-5. Docker & Kubernetes
-6. CI/CD
-7. Environment variables
-8. Project structure
-9. Contributing
-10. Docs
+This repository serves as a technical portfolio for modern DevOps practices, including **Automated Pipelines**, **Infrastructure as Code concepts**, **Container Orchestration**, and **Deep Observability**.
 
 ---
 
-## Features
+## 📸 Screenshots
 
-- Browser chat UI powered by ChatGPT.
-- FastAPI backend acting as a secure proxy to the ChatGPT API.
-- Dockerfiles for frontend and backend, and a `docker-compose.yml` for local development.
-- Kubernetes manifests under `k8s/` for deploying to a cluster.
-- Example CI/CD pipeline for automated builds and deployments.
+| Landing Page | Chat Interface |
+| :---: | :---: |
+| ![Welcome](assets/image1.PNG) | ![Chat](assets/image2.PNG) |
 
 ---
 
-## Tech stack
+## 🔥 Key Features
 
-- Frontend: Next.js, React, Tailwind CSS
-- Backend: Python 3.11, FastAPI, Uvicorn
-- LLM: OpenAI ChatGPT API
-- Containerization: Docker, Docker Compose
-- Orchestration: Kubernetes (manifests included)
-- CI/CD: GitHub Actions (example workflows)
+### 💻 Application Layer
+*   **Intuitive UI**: A sleek, modern chat interface built with **React/Next.js**.
+*   **AI Integration**: Seamless communication with OpenAI's GPT models via a **FastAPI** backend.
+*   **Persistent Context**: MongoDB-backed conversation history.
+*   **Async Processing**: Celery & Redis for offloading heavy LLM tasks.
 
----
-
-## Architecture overview
-
-The app is split into two main services:
-
-- Frontend (Next.js): renders the chat UI and handles client-side state and streaming UI updates.
-- Backend (FastAPI): receives chat requests from the frontend, performs any necessary validation or session handling, and forwards user messages to the OpenAI ChatGPT API. The backend keeps secrets (API keys) off the client.
-
-Communication patterns:
-
-- Browser <-> Frontend (Next.js pages/components)
-- Frontend -> Backend: HTTP requests to the API endpoints in `backend/app/api/`.
-- Backend -> OpenAI: secure server-side requests using the `OPENAI_API_KEY` environment variable.
-
-Key files:
-
-- `backend/app/main.py` – FastAPI app entrypoint
-- `backend/requirements.txt` – Python dependencies
-- `frontend/` – Next.js app with UI components in `frontend/components/`
-- `docker-compose.yml` – local development orchestration for frontend + backend
-- `k8s/` – Kubernetes YAML manifests for deployments and services
+### 🛡️ DevOps & CI/CD Layer
+*   **Automated Pipeline**: 20+ stage GitHub Actions workflow covering Linting, Testing, Building, Scanning, and Deploying.
+*   **Security First**: Integrated **Trivy** scanning for container vulnerabilities on every build.
+*   **Container Registry**: Versioned image hosting via **GHCR (GitHub Container Registry)** using SHA-based immutable tags.
+*   **Progressive Delivery**: **Canary Releases** and **Blue/Green Deployment** scripts for zero-downtime updates.
+*   **Kubernetes Orchestration**: Production-ready manifests for Deployments, Services, and **Horizontal Pod Autoscalers (HPA)**.
+*   **Observability**: Full-stack monitoring with **Prometheus** and **Grafana** (Metrics-gated deployments).
 
 ---
 
-## Local development
+## 🛠️ Technology Stack
 
-Prerequisites:
-
-- Docker Desktop (or Docker + docker-compose), or
-- Python 3.11 and Node.js 18+ (for running services locally without Docker)
-
-Run frontend locally (node):
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Run backend locally (Python venv):
-
-Windows (PowerShell):
-
-```powershell
-cd backend
-python -m venv venv
-venv\\Scripts\\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Linux / macOS:
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-By default, the frontend expects the backend API at `/api` (see `frontend/services/api.ts`). If running separately, update the frontend config or use a proxy/rewrite in `next.config.js`.
-
-Run both with Docker Compose (recommended for parity):
-
-```bash
-docker-compose up --build
-```
-
-This will build and start the frontend and backend containers and any supporting services defined in `docker-compose.yml`.
+| Core | Infrastructure | DevOps |
+| :--- | :--- | :--- |
+| **Frontend**: Next.js, React | **Orchestration**: Kubernetes | **CI/CD**: GitHub Actions |
+| **Backend**: Python, FastAPI | **Containerization**: Docker | **Registry**: GHCR |
+| **Database**: MongoDB | **Caching/Queue**: Redis | **Security**: Trivy |
+| **Worker**: Celery | **Local Dev**: Docker Compose | **Monitoring**: Prometheus, Grafana |
 
 ---
 
-## Docker & Kubernetes
+## 🏗️ Automated CI/CD Pipeline
+The pipeline is the heart of this project. Every commit to `main` or `develop` triggers a rigorous delivery flow:
 
-- Dockerfiles are included for both `frontend` and `backend`.
-- Use `docker-compose.yml` for local multi-service runs and quick iteration.
-- The `k8s/` folder contains example Kubernetes manifests for `Deployment` and `Service` resources for both frontend and backend.
-
-Secrets and environment variables should be provided to containers via environment variables in Docker Compose or using Kubernetes `Secret` objects in production.
-
----
-
-## CI/CD
-
-This repository is set up to demonstrate CI/CD using GitHub Actions (example workflows should be added under `.github/workflows/`). Suggested pipeline steps:
-
-1. Lint and run tests for backend and frontend.
-2. Build production Docker images for frontend and backend.
-3. Push images to a container registry (Docker Hub / GitHub Packages / ACR).
-4. Deploy or update Kubernetes manifests pointing to the new image tags.
-
-If you'd like, I can add a starter GitHub Actions workflow that builds images and runs tests.
+1.  **Code Quality**: Parallel linting (Black, Flake8, ESLint) and formatting checks.
+2.  **Unit & Integration Tests**: Automated Jest (Frontend) and Pytest (Backend) execution.
+3.  **Secure Build**: Multi-stage Docker builds tagged with unique Commit SHAs.
+4.  **Vulnerability Scan**: Trivy checks images for `HIGH` and `CRITICAL` vulnerabilities; fails the build if found.
+5.  **Canary Deployment**: Deploys the new version to a small subset of users (Canary slot).
+6.  **Metrics Verification**: A custom script queries Prometheus for error rates and latency on the Canary version.
+7.  **Promotion**: If metrics are stable, promotes the image to the **Stable** production slot via a Rolling Update.
 
 ---
 
-## Environment variables
+## 📈 Monitoring & Scalability
+We don't just deploy; we observe. The system is designed to handle load and provide deep insights:
 
-Required for local and production runs:
-
-- `OPENAI_API_KEY` – your OpenAI API key (backend-only; never expose this in the frontend)
-- `BACKEND_HOST` / `BACKEND_PORT` – used by frontend if not using proxy/rewrite
-
-Store secrets in your platform's secret manager, or in Kubernetes `Secret` resources when deploying to a cluster.
-
----
-
-## Project structure (high level)
-
-- `backend/` – FastAPI application, controllers, services, and Dockerfile
-- `frontend/` – Next.js application, components, and Dockerfile
-- `k8s/` – Kubernetes deployment and service manifests
-- `docker-compose.yml` – compose orchestration for local development
-- `README.md` – this file
+*   **Autoscaling**: Kubernetes **HPA** scales pods up/down based on CPU/Memory utilization.
+*   **Rate Limiting**: Custom Redis-backed rate limiter protects the API from abuse.
+*   **Grafana Dashboards**: Real-time visualization of LLM response times, token usage, and system health.
+*   **Alerting**: Integrated alerting thresholds for error spikes and high latency.
 
 ---
 
-## Contributing
+## ⚙️ Installation & Usage
 
-Contributions are welcome. Suggested workflow:
+### 🐳 Local Development (Docker Compose)
+1.  Clone the repository.
+2.  Add your `OPENAI_API_KEY` to the `.env` file.
+3.  Run the stack:
+    ```powershell
+    docker-compose up -d
+    ```
+4.  Access the UI at `http://localhost:3000`.
 
-1. Fork the repo and create a feature branch.
-2. Add tests for new behavior.
-3. Open a pull request describing the change.
-
-Please do not commit secrets or API keys to the repository.
+### ☸️ Kubernetes Deployment (Local/Minikube)
+1.  Ensure Minikube is running and configured.
+2.  Run the deployment script:
+    ```powershell
+    .\scripts\deploy-local-k8s.ps1
+    ```
+3.  Check status:
+    ```powershell
+    kubectl get pods
+    ```
 
 ---
 
-## Next steps I can help with
-
-- Add a GitHub Actions workflow to the repo (build/test/deploy).
-- Add example environment config and `.env.example`.
-- Add basic automated tests for the backend (pytest) and frontend (Jest).
+## 📜 Roadmap & Philosophy
+This project follows the **[DevOps.md](DevOps.md)** roadmap. From automated testing (Phase 7) to Progressive Delivery (Phase 11) and Scalability (Phase 12), every stage is documented to showcase the growth of a professional DevOps engineer.
 
 ---
 
-## Start Commands
-
-```bash
-cd backend
-uvicorn app.main:app --reload
-
-cd frontend
-npm run dev
-```
-
-📝 README Discipline
-Every repo should have:
-What it does
-How to run it
-How to test it
-Architecture overview (bonus)
+### 🖋️ Author
+**Kieran Archi**  
+*DevOps Engineer & Full-Stack Developer*  
+[GitHub Profile](https://github.com/KieranArchi98)
