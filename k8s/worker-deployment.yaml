@@ -15,10 +15,16 @@ spec:
       labels:
         app: llm-worker
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: llm-worker
-          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${IMAGE_TAG}
+          image: genesis-backend:latest
+          imagePullPolicy: IfNotPresent
           command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info"]
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
           env:
             - name: REDIS_URL
               value: redis://redis:6379/0
@@ -37,6 +43,8 @@ spec:
                 secretKeyRef:
                   name: app-secrets
                   key: MONGO_DB
+            - name: LOG_LEVEL
+              value: "INFO"
           resources:
             requests:
               memory: "128Mi"
@@ -44,3 +52,4 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+

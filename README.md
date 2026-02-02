@@ -37,6 +37,10 @@ This repository serves as a technical portfolio for modern DevOps practices, inc
 *   **Kubernetes Orchestration**: Production-ready manifests for Deployments, Services, and **Horizontal Pod Autoscalers (HPA)**.
 *   **Observability**: Full-stack monitoring with **Prometheus** and **Grafana** (Metrics-gated deployments).
 
+| CI/CD Pipeline |
+| :---: |
+| ![DevOps](assets/DevOps.png) |
+
 ---
 
 ## 🛠️ Technology Stack

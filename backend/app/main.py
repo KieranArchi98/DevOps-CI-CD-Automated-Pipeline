@@ -1,24 +1,41 @@
 import time
+import logging
+import os
+import uuid
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from prometheus_client import Counter, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from .api.api_router import api_router
+from .core.logging_config import setup_logging
+from .core.shutdown import GracefulShutdown
 
 load_dotenv()
 
+# Setup structured JSON logging
+log_level = os.getenv("LOG_LEVEL", "INFO")
+setup_logging(service_name="llm-backend", level=log_level)
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
+
+# Initialize graceful shutdown handler
+shutdown_handler = GracefulShutdown(shutdown_timeout=30)
 
 # Rate Limiting & Redis
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
-import os
+
+# Global Redis connection
+redis_client = None
 
 @app.on_event("startup")
 async def startup():
+    global redis_client
     redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
     
     # Simple check: if we are running locally and 'redis' host is not resolvable,
@@ -27,23 +44,43 @@ async def startup():
     # but fails locally.
     
     try:
-        r = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+        redis_client = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
         # Test connection
-        await r.ping()
-        await FastAPILimiter.init(r)
-        print(f"Connected to Redis at {redis_url}")
+        await redis_client.ping()
+        await FastAPILimiter.init(redis_client)
+        logger.info(f"Connected to Redis at {redis_url}")
     except Exception as e:
-        print(f"Warning: Failed to connect to Redis at {redis_url}: {e}")
-        print("Attempting fallback to localhost...")
+        logger.warning(f"Failed to connect to Redis at {redis_url}: {e}")
+        logger.info("Attempting fallback to localhost...")
         try:
             fallback_url = "redis://localhost:6379/0"
-            r = redis.from_url(fallback_url, encoding="utf-8", decode_responses=True)
-            await r.ping()
-            await FastAPILimiter.init(r)
-            print(f"Connected to Redis at {fallback_url}")
+            redis_client = redis.from_url(fallback_url, encoding="utf-8", decode_responses=True)
+            await redis_client.ping()
+            await FastAPILimiter.init(redis_client)
+            logger.info(f"Connected to Redis at {fallback_url}")
         except Exception as e2:
-            print(f"Error: Could not connect to Redis: {e2}")
-            print("Rate limiting will not work.")
+            logger.error(f"Could not connect to Redis: {e2}")
+            logger.warning("Rate limiting will not work.")
+            redis_client = None
+    
+    # Setup graceful shutdown handlers
+    async def cleanup():
+        """Cleanup resources during shutdown."""
+        logger.info("Closing Redis connection...")
+        if redis_client:
+            await redis_client.close()
+        logger.info("Cleanup complete")
+    
+    shutdown_handler.setup_signal_handlers(cleanup_callback=cleanup)
+    logger.info("Application startup complete")
+
+@app.on_event("shutdown")
+async def shutdown():
+    """Handle application shutdown."""
+    logger.info("Application shutdown initiated")
+    if redis_client:
+        await redis_client.close()
+    logger.info("Application shutdown complete")
 
 # Celery Tasks
 from .tasks import process_llm_analysis
@@ -74,12 +111,40 @@ http_request_duration_seconds = Histogram(
 
 
 @app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Add unique request ID to each request for tracing."""
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+    
+    # Add request ID to response headers
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    
+    return response
+
+
+@app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     """Track HTTP request metrics for deployment verification."""
     start_time = time.time()
+    request_id = getattr(request.state, "request_id", "unknown")
+    
+    # Log incoming request
+    logger.info(
+        f"Incoming request: {request.method} {request.url.path}",
+        extra={"request_id": request_id, "method": request.method, "path": request.url.path}
+    )
 
     # Process request
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        logger.error(
+            f"Request failed: {str(e)}",
+            extra={"request_id": request_id, "method": request.method, "path": request.url.path},
+            exc_info=True
+        )
+        raise
 
     # Calculate latency
     latency = time.time() - start_time
@@ -95,13 +160,25 @@ async def metrics_middleware(request: Request, call_next):
     http_request_duration_seconds.labels(method=method, endpoint=endpoint).observe(
         latency
     )
+    
+    # Log request completion
+    logger.info(
+        f"Request completed: {method} {endpoint} - {status} ({latency:.3f}s)",
+        extra={
+            "request_id": request_id,
+            "method": method,
+            "path": endpoint,
+            "status": status,
+            "latency": latency
+        }
+    )
 
     return response
 
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -112,6 +189,90 @@ app.include_router(api_router, prefix="/api")
 Instrumentator().instrument(app).expose(app)
 
 
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler for consistent error responses.
+    Prevents stack trace leakage in production.
+    """
+    request_id = getattr(request.state, "request_id", "unknown")
+    
+    # Log the error with full details
+    logger.error(
+        f"Unhandled exception: {str(exc)}",
+        extra={
+            "request_id": request_id,
+            "method": request.method,
+            "path": request.url.path,
+            "exception_type": type(exc).__name__
+        },
+        exc_info=True
+    )
+    
+    # Return sanitized error response (no stack traces)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Internal server error",
+            "message": "An unexpected error occurred. Please try again later.",
+            "request_id": request_id,
+            "type": "internal_error"
+        }
+    )
+
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    """
+    Liveness probe endpoint.
+    Returns OK if the process is running.
+    """
+    return {
+        "status": "ok",
+        "service": "llm-backend",
+        "timestamp": time.time()
+    }
+
+
+@app.get("/ready")
+async def readiness_check():
+    """
+    Readiness probe endpoint.
+    Checks if the service is ready to accept traffic by verifying:
+    - Redis connectivity
+    - Database connectivity (if applicable)
+    """
+    checks = {
+        "redis": "unknown",
+        "overall": "not_ready"
+    }
+    
+    # Check Redis
+    if redis_client:
+        try:
+            await redis_client.ping()
+            checks["redis"] = "healthy"
+        except Exception as e:
+            logger.warning(f"Redis health check failed: {e}")
+            checks["redis"] = "unhealthy"
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={
+                    "status": "not_ready",
+                    "checks": checks,
+                    "timestamp": time.time()
+                }
+            )
+    else:
+        checks["redis"] = "not_configured"
+    
+    # Add MongoDB check if needed
+    # For now, we'll assume if Redis is healthy, we're ready
+    
+    checks["overall"] = "ready"
+    return {
+        "status": "ready",
+        "checks": checks,
+        "timestamp": time.time()
+    }
