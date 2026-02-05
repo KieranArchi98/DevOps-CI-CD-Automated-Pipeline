@@ -78,9 +78,13 @@ export default function Sidebar({
     };
   }, [activeDropdown]);
 
-  const filteredChats = chats.filter(chat =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredChats = chats.filter(chat => {
+    if (!normalizedQuery) return true;
+    const title = (chat.title || '').toLowerCase();
+    const searchText = (chat.searchText || '').toLowerCase();
+    return title.includes(normalizedQuery) || searchText.includes(normalizedQuery);
+  });
 
   const handleRename = (chatId: string) => {
     const chat = chats.find(c => c.id === chatId);
@@ -135,7 +139,7 @@ export default function Sidebar({
         className={`
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
         fixed lg:relative lg:translate-x-0
-        w-[280px] h-full sidebar-mist
+        w-[280px] h-screen lg:h-screen lg:sticky lg:top-0 sidebar-mist
         transition-transform duration-500 ease-out z-50
         flex flex-col
       `}

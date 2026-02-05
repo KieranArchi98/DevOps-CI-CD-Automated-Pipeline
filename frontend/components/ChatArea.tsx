@@ -80,23 +80,25 @@ function ChatArea({
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-mist lg:hidden">
+      <div className="flex items-center justify-between p-4 border-b border-mist lg:hidden sticky top-0 z-20 bg-transparent">
         <button
           onClick={onToggleSidebar}
-          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors"
+          className="p-2 rounded-lg transition-colors bg-[rgba(26,29,35,0.35)] backdrop-blur-sm border border-mist hover:bg-mist-medium/30"
         >
           <Menu className="w-5 h-5 text-fog" />
         </button>
-        <h1 className="font-light text-mist truncate lowercase tracking-wide">
-          {chat?.title || 'new conversation'}
-        </h1>
+        <div className="px-3 py-1.5 rounded-lg bg-[rgba(26,29,35,0.35)] backdrop-blur-sm border border-mist max-w-[60vw]">
+          <h1 className="font-light text-mist truncate lowercase tracking-wide">
+            {chat?.title || 'new conversation'}
+          </h1>
+        </div>
         <div className="w-9" />
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0 chat-scroll">
         {chat?.messages.length === 0 ? (
           loading ? (
             <div className="flex items-center justify-center h-full">
@@ -115,7 +117,7 @@ function ChatArea({
             </div>
           )
         ) : (
-          <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="max-w-4xl mx-auto px-6 py-8 pb-12">
             {chat?.messages
               .filter(msg => msg && msg.id)
               .map((msg, index) => (
@@ -201,9 +203,9 @@ function ChatArea({
         )}
       </div>
       {/* Input Area */}
-      <div className="border-t border-mist p-6">
+      <div className="border-t border-mist p-6 shrink-0 bg-transparent">
         <div className="max-w-4xl mx-auto">
-          <div className="relative flex items-end mist-card rounded-2xl p-2 focus-within:border-pale-cyan/40 transition-all duration-300">
+          <div className="relative flex items-end rounded-2xl p-2 border border-mist bg-transparent focus-within:border-pale-cyan/40 transition-all duration-300">
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Paperclip className="w-5 h-5" />
             </button>

@@ -73,102 +73,104 @@ export default function InitialView({
   ];
 
   return (
-    <div className="flex-1 flex flex-col relative">
-      <div className="flex items-center justify-between p-4 border-b border-mist lg:hidden">
+    <div className="flex-1 flex flex-col relative min-h-0 overflow-hidden">
+      <div className="flex items-center justify-between p-4 border-b border-mist lg:hidden sticky top-0 z-20 bg-transparent">
         <button
           onClick={onToggleSidebar}
-          className="p-2 hover:bg-mist-medium/30 rounded-lg transition-colors"
+          className="p-2 rounded-lg transition-colors bg-[rgba(26,29,35,0.35)] backdrop-blur-sm border border-mist hover:bg-mist-medium/30"
         >
           <Menu className="w-5 h-5 text-fog" />
         </button>
-        <div className="w-8 h-8 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/20 rounded-lg flex items-center justify-center border border-pale-cyan/20">
+        <div className="w-8 h-8 bg-[rgba(26,29,35,0.35)] rounded-lg flex items-center justify-center border border-mist backdrop-blur-sm">
           <Earth className="w-4 h-4 text-cyan" />
         </div>
         <div className="w-9" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 max-w-4xl mx-auto w-full">
-        {/* Hero Section */}
-        <div className="text-center mb-12 hero-element">
-          <div className="relative mb-8">
-            <div className="floating-logo w-20 h-20 bg-gradient-to-br from-pale-cyan/30 to-vapor-blue/20 rounded-2xl flex items-center justify-center mx-auto border border-pale-cyan/20 backdrop-blur-xl">
-              <Earth className="w-10 h-10 text-cyan" />
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="min-h-full flex flex-col items-center justify-center px-6 max-w-4xl mx-auto w-full py-8">
+          {/* Hero Section */}
+          <div className="text-center mb-12 hero-element">
+            <div className="relative mb-8">
+              <div className="floating-logo w-20 h-20 bg-gradient-to-br from-pale-cyan/30 to-vapor-blue/20 rounded-2xl flex items-center justify-center mx-auto border border-pale-cyan/20 backdrop-blur-xl">
+                <Earth className="w-10 h-10 text-cyan" />
+              </div>
+              <div className="pulse-glow absolute inset-0 w-20 h-20 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/10 rounded-2xl mx-auto blur-xl"></div>
             </div>
-            <div className="pulse-glow absolute inset-0 w-20 h-20 bg-gradient-to-br from-pale-cyan/20 to-vapor-blue/10 rounded-2xl mx-auto blur-xl"></div>
+
+            <h1 className="text-4xl md:text-5xl font-light text-mist mb-4 tracking-wide hero-element">
+              Welcome to
+              <span className="block text-cyan font-extralight">Genesis</span>
+            </h1>
+            <p className="text-fog text-lg md:text-xl font-light tracking-wide max-w-2xl mx-auto hero-element">
+              Consciousness floating between realities, where thoughts become celestial conversations
+            </p>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-light text-mist mb-4 tracking-wide hero-element">
-            Welcome to
-            <span className="block text-cyan font-extralight">Genesis</span>
-          </h1>
-          <p className="text-fog text-lg md:text-xl font-light tracking-wide max-w-2xl mx-auto hero-element">
-            Consciousness floating between realities, where thoughts become celestial conversations
-          </p>
-        </div>
-
-        {/* Suggestions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl mb-12">
-          {suggestions.map((suggestion, index) => {
-            const IconComponent = suggestion.icon;
-            return (
-              <button
-                key={index}
-                onClick={() => onSendMessage(suggestion.text)}
-                className="suggestion-card p-6 text-left mist-card rounded-2xl hover:bg-mist-medium/30 transition-all duration-500 group angular-shape hover-glow"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-pale-cyan/20 to-transparent rounded-xl flex items-center justify-center border border-pale-cyan/10 group-hover:border-pale-cyan/30 transition-colors">
-                    <IconComponent className="w-5 h-5 text-cyan" />
+          {/* Suggestions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl mb-12">
+            {suggestions.map((suggestion, index) => {
+              const IconComponent = suggestion.icon;
+              return (
+                <button
+                  key={index}
+                  onClick={() => onSendMessage(suggestion.text)}
+                  className="suggestion-card p-6 text-left mist-card rounded-2xl hover:bg-mist-medium/30 transition-all duration-500 group angular-shape hover-glow"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pale-cyan/20 to-transparent rounded-xl flex items-center justify-center border border-pale-cyan/10 group-hover:border-pale-cyan/30 transition-colors">
+                      <IconComponent className="w-5 h-5 text-cyan" />
+                    </div>
+                    <span className="text-mist group-hover:text-cyan transition-colors font-light tracking-wide leading-relaxed">
+                      {suggestion.text}
+                    </span>
                   </div>
-                  <span className="text-mist group-hover:text-cyan transition-colors font-light tracking-wide leading-relaxed">
-                    {suggestion.text}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Input Area */}
-        <div className="w-full max-w-3xl hero-element">
-          <div className="relative flex items-end mist-card rounded-2xl p-2 focus-within:border-pale-cyan/40 transition-all duration-300">
+          {/* Input Area */}
+          <div className="w-full max-w-3xl hero-element">
+          <div className="relative flex items-end rounded-2xl p-2 border border-mist bg-transparent focus-within:border-pale-cyan/40 transition-all duration-300">
             <button className="p-3 text-fog hover:text-cyan transition-colors">
               <Paperclip className="w-5 h-5" />
             </button>
 
-            <textarea
-              value={message}
-              onChange={e => setMessage(e.target.value)} // your controlled state
-              onKeyDown={handleKeyDown}
-              placeholder="And the word was..."
-              className="flex-1 resize-none border-none outline-none py-3 bg-transparent text-mist placeholder-fog max-h-32 min-h-[24px] font-light tracking-wide"
-              rows={1}
-              style={{ height: 'auto', minHeight: '24px' }}
-              onInput={e => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = target.scrollHeight + 'px';
-              }}
-              {...searchInputProps} // will never include onChange/value
-            />
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)} // your controlled state
+                onKeyDown={handleKeyDown}
+                placeholder="And the word was..."
+                className="flex-1 resize-none border-none outline-none py-3 bg-transparent text-mist placeholder-fog max-h-32 min-h-[24px] font-light tracking-wide"
+                rows={1}
+                style={{ height: 'auto', minHeight: '24px' }}
+                onInput={e => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = target.scrollHeight + 'px';
+                }}
+                {...searchInputProps} // will never include onChange/value
+              />
 
-            <button className="p-3 text-fog hover:text-cyan transition-colors">
-              <Mic className="w-5 h-5" />
-            </button>
+              <button className="p-3 text-fog hover:text-cyan transition-colors">
+                <Mic className="w-5 h-5" />
+              </button>
 
-            <button
-              onClick={handleSend}
-              disabled={!message.trim()}
-              className="m-1 p-3 vapor-button rounded-xl hover:bg-pale-cyan/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 hover-glow"
-            >
-              <Send className="w-4 h-4 text-cyan" />
-            </button>
+              <button
+                onClick={handleSend}
+                disabled={!message.trim()}
+                className="m-1 p-3 vapor-button rounded-xl hover:bg-pale-cyan/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 hover-glow"
+              >
+                <Send className="w-4 h-4 text-cyan" />
+              </button>
+            </div>
+
+            <p className="text-xs text-fog text-center mt-4 font-light tracking-wide">
+              AI consciousness may drift between dimensions. verify important transmissions.
+            </p>
           </div>
-
-          <p className="text-xs text-fog text-center mt-4 font-light tracking-wide">
-            AI consciousness may drift between dimensions. verify important transmissions.
-          </p>
         </div>
       </div>
     </div>

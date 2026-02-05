@@ -24,6 +24,11 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    height: 100%;
+  }
+
   body {
     font-family: 'Exo 2', sans-serif;
     background: linear-gradient(
@@ -70,6 +75,10 @@
 }
 
 @layer components {
+  .chat-scroll {
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
   .mist-card {
     background: rgba(42, 47, 56, 0.6);
     backdrop-filter: blur(20px);
