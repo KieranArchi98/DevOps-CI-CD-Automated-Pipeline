@@ -103,7 +103,8 @@ export default function InitialView({
               <span className="block text-cyan font-extralight">Genesis</span>
             </h1>
             <p className="text-fog text-lg md:text-xl font-light tracking-wide max-w-2xl mx-auto hero-element">
-              Consciousness floating between realities, where thoughts become celestial conversations
+              Consciousness floating between realities, where thoughts become celestial
+              conversations
             </p>
           </div>
 
@@ -133,10 +134,10 @@ export default function InitialView({
 
           {/* Input Area */}
           <div className="w-full max-w-3xl hero-element">
-          <div className="relative flex items-end rounded-2xl p-2 border border-mist bg-transparent focus-within:border-pale-cyan/40 transition-all duration-300">
-            <button className="p-3 text-fog hover:text-cyan transition-colors">
-              <Paperclip className="w-5 h-5" />
-            </button>
+            <div className="relative flex items-end rounded-2xl p-2 border border-mist bg-transparent focus-within:border-pale-cyan/40 transition-all duration-300">
+              <button className="p-3 text-fog hover:text-cyan transition-colors">
+                <Paperclip className="w-5 h-5" />
+              </button>
 
               <textarea
                 value={message}

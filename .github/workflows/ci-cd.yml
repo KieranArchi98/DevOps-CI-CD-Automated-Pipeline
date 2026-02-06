@@ -20,6 +20,10 @@ on:
         options:
           - blue
           - green
+      terraform_apply:
+        description: "Run Terraform apply (manual, gated)"
+        required: false
+        type: boolean
 
 jobs:
   lint-backend:
@@ -113,6 +117,77 @@ jobs:
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "HIGH,CRITICAL"
+
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_openai_api_key: "ci-placeholder"
+      TF_VAR_mongo_uri: "mongodb://ci-placeholder:27017"
+      TF_VAR_mongo_db: "genesis"
+      TF_VAR_kubeconfig_path: "${{ github.workspace }}/.kube/config"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v3
+      - name: Prepare dummy kubeconfig
+        run: |
+          mkdir -p ${{ github.workspace }}/.kube
+          cat <<EOF > ${{ github.workspace }}/.kube/config
+          apiVersion: v1
+          kind: Config
+          clusters:
+          - cluster:
+              server: https://127.0.0.1:6443
+              insecure-skip-tls-verify: true
+            name: local
+          contexts:
+          - context:
+              cluster: local
+              user: local
+            name: local
+          current-context: local
+          users:
+          - name: local
+            user:
+              token: dummy
+          EOF
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+        working-directory: infrastructure/terraform
+      - name: Terraform init
+        run: terraform init -backend=false
+        working-directory: infrastructure/terraform
+      - name: Terraform validate
+        run: terraform validate
+        working-directory: infrastructure/terraform
+      - name: Terraform plan (PR only)
+        if: github.event_name == 'pull_request'
+        run: terraform plan -input=false
+        working-directory: infrastructure/terraform
+
+  terraform-apply:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.terraform_apply == true
+    environment:
+      name: terraform
+    env:
+      TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+      TF_VAR_mongo_uri: ${{ secrets.MONGO_URI }}
+      TF_VAR_mongo_db: ${{ secrets.MONGO_DB }}
+      TF_VAR_kubeconfig_path: "${{ github.workspace }}/.kube/config"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v3
+      - name: Set Kubeconfig
+        run: |
+          mkdir -p ${{ github.workspace }}/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/.kube/config
+          chmod 600 ${{ github.workspace }}/.kube/config
+      - name: Terraform init
+        run: terraform init
+        working-directory: infrastructure/terraform
+      - name: Terraform apply
+        run: terraform apply -auto-approve
+        working-directory: infrastructure/terraform
 
   build-and-push:
     needs: build

@@ -1,5 +1,7 @@
 import time
+
 from .core.celery_app import celery_app
+
 
 @celery_app.task(name="process_llm_analysis")
 def process_llm_analysis(text: str):
@@ -11,5 +13,5 @@ def process_llm_analysis(text: str):
     return {
         "status": "completed",
         "analysis": f"Processed text length: {len(text)}",
-        "insights": ["topic_a", "topic_b"]
+        "insights": ["topic_a", "topic_b"],
     }

@@ -35,6 +35,7 @@ This repository serves as a technical portfolio for modern DevOps practices, inc
 *   **Container Registry**: Versioned image hosting via **GHCR (GitHub Container Registry)** using SHA-based immutable tags.
 *   **Progressive Delivery**: **Canary Releases** and **Blue/Green Deployment** scripts for zero-downtime updates.
 *   **Kubernetes Orchestration**: Production-ready manifests for Deployments, Services, and **Horizontal Pod Autoscalers (HPA)**.
+*   **Infrastructure as Code**: **Terraform** manages namespaces, secrets, deployments, and services with a local-first workflow.
 *   **Observability**: Full-stack monitoring with **Prometheus** and **Grafana** (Metrics-gated deployments).
 
 | CI/CD Pipeline |
@@ -51,6 +52,7 @@ This repository serves as a technical portfolio for modern DevOps practices, inc
 | **Backend**: Python, FastAPI | **Containerization**: Docker | **Registry**: GHCR |
 | **Database**: MongoDB | **Caching/Queue**: Redis | **Security**: Trivy |
 | **Worker**: Celery | **Local Dev**: Docker Compose | **Monitoring**: Prometheus, Grafana |
+| **IaC**: Terraform | **K8s**: Minikube/Docker Desktop | **Delivery**: Canary + Rolling |
 
 ---
 
@@ -79,6 +81,35 @@ We don't just deploy; we observe. The system is designed to handle load and prov
 
 ## ⚙️ Installation & Usage
 
+### ???? Local Startup (Backend + Frontend)
+1.  Install dependencies:
+    ```powershell
+    # Backend
+    cd backend
+    pip install -r requirements.txt
+
+    # Frontend
+    cd ..\frontend
+    npm install
+    ```
+2.  Start the backend API:
+    ```powershell
+    cd ..\backend
+    $env:OPENAI_API_KEY = "your_key_here"
+    $env:MONGO_URI = "your_mongo_uri_here"
+    $env:MONGO_DB = "genesis"
+    python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    ```
+3.  Start the frontend (in a new terminal):
+    ```powershell
+    cd ..\frontend
+    npm run dev
+    ```
+4.  Open:
+    - Frontend: `http://localhost:3000`
+    - Backend health: `http://localhost:8000/health`
+
+
 ### 🐳 Local Development (Docker Compose)
 1.  Clone the repository.
 2.  Add your `OPENAI_API_KEY` to the `.env` file.
@@ -98,6 +129,36 @@ We don't just deploy; we observe. The system is designed to handle load and prov
     ```powershell
     kubectl get pods
     ```
+
+
+### ???? Terraform IaC (Local-First)
+Terraform defines the Kubernetes infrastructure declaratively and reads your kubeconfig from `~/.kube/config` by default.
+
+1.  Create a local vars file:
+    ```powershell
+    Copy-Item infrastructure/terraform/terraform.tfvars.example infrastructure/terraform/terraform.tfvars
+    ```
+2.  Fill in secrets inside `infrastructure/terraform/terraform.tfvars` (never commit this file).
+3.  Initialize and plan:
+    ```powershell
+    cd infrastructure/terraform
+    terraform init
+    terraform plan
+    ```
+4.  Apply locally:
+    ```powershell
+    terraform apply
+    ```
+
+**CI/CD Integration**
+*   Terraform runs `fmt`, `init`, and `validate` on every CI run.
+*   `terraform plan` runs on pull requests.
+*   `terraform apply` is manual via GitHub Actions `workflow_dispatch` (no auto-apply on `main`).
+
+**Why Terraform here?**
+*   Standardizes local infra state in code.
+*   Keeps Minikube/Docker Desktop workflows intact.
+*   Provides a clean migration path to cloud-managed Kubernetes later.
 
 ---
 

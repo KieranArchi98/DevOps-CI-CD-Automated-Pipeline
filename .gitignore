@@ -63,3 +63,9 @@ k8s/secrets.yml
 
 # Ignore all env variants (catch-all)
 .env.*
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars

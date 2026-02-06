@@ -156,9 +156,7 @@ export default function Home() {
       if (!currentConv) {
         setCurrentConv({ id: DRAFT_ID, title: 'new conversation' });
       }
-      setCurrentConv(prev =>
-        prev && prev.id === DRAFT_ID ? { ...prev, title } : prev
-      );
+      setCurrentConv(prev => (prev && prev.id === DRAFT_ID ? { ...prev, title } : prev));
       setMessages([optimisticMsg]);
       setMsgLoading(true);
       let createdId: string | null = null;
