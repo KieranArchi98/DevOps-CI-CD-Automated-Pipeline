@@ -3,22 +3,22 @@ variable "namespace" {
 }
 
 variable "deployment_name" {
-  type = string
+  type    = string
   default = "llm-backend"
 }
 
 variable "service_name" {
-  type = string
+  type    = string
   default = "llm-backend"
 }
 
 variable "app_label" {
-  type = string
+  type    = string
   default = "llm-backend"
 }
 
 variable "version_label" {
-  type = string
+  type    = string
   default = "stable"
 }
 
@@ -31,12 +31,12 @@ variable "image_tag" {
 }
 
 variable "replicas" {
-  type = number
+  type    = number
   default = 2
 }
 
 variable "service_type" {
-  type = string
+  type    = string
   default = "ClusterIP"
 }
 
@@ -45,11 +45,11 @@ variable "secret_name" {
 }
 
 variable "redis_url" {
-  type = string
+  type    = string
   default = "redis://redis:6379/0"
 }
 
 variable "log_level" {
-  type = string
+  type    = string
   default = "INFO"
 }

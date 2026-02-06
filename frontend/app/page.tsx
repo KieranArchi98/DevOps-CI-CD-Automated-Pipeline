@@ -13,6 +13,13 @@ import {
   renameConversation,
 } from '../services/api';
 
+type Conversation = {
+  id?: string;
+  _id?: string;
+  title?: string;
+  [key: string]: any;
+};
+
 const DUMMY_USER_ID = 'user1';
 const DRAFT_ID = 'draft-conversation';
 
@@ -33,8 +40,8 @@ const isDefaultTitle = (title: string) => {
 };
 
 export default function Home() {
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [currentConv, setCurrentConv] = useState<any | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConv, setCurrentConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isInitialView, setIsInitialView] = useState(true);
@@ -156,7 +163,9 @@ export default function Home() {
       if (!currentConv) {
         setCurrentConv({ id: DRAFT_ID, title: 'new conversation' });
       }
-      setCurrentConv(prev => (prev && prev.id === DRAFT_ID ? { ...prev, title } : prev));
+      setCurrentConv((prev: Conversation | null) =>
+        prev && prev.id === DRAFT_ID ? { ...prev, title } : prev
+      );
       setMessages([optimisticMsg]);
       setMsgLoading(true);
       let createdId: string | null = null;

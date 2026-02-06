@@ -1,9 +1,9 @@
 resource "kubernetes_deployment" "backend" {
   metadata {
-    name = "llm-backend-canary"
+    name      = "llm-backend-canary"
     namespace = var.namespace
     labels = {
-      app = "llm-backend"
+      app     = "llm-backend"
       version = "canary"
     }
   }
@@ -14,14 +14,14 @@ resource "kubernetes_deployment" "backend" {
     strategy {
       type = "RollingUpdate"
       rolling_update {
-        max_surge = 1
+        max_surge       = 1
         max_unavailable = 1
       }
     }
 
     selector {
       match_labels = {
-        app = "llm-backend"
+        app     = "llm-backend"
         version = "canary"
       }
     }
@@ -29,13 +29,13 @@ resource "kubernetes_deployment" "backend" {
     template {
       metadata {
         labels = {
-          app = "llm-backend"
+          app     = "llm-backend"
           version = "canary"
         }
         annotations = {
           "prometheus.io/scrape" = "true"
-          "prometheus.io/port" = "8000"
-          "prometheus.io/path" = "/metrics"
+          "prometheus.io/port"   = "8000"
+          "prometheus.io/path"   = "/metrics"
         }
       }
 
@@ -43,8 +43,8 @@ resource "kubernetes_deployment" "backend" {
         termination_grace_period_seconds = 30
 
         container {
-          name = "llm-backend"
-          image = "${var.backend_image_name}:${var.backend_image_tag}"
+          name              = "llm-backend"
+          image             = "${var.backend_image_name}:${var.backend_image_tag}"
           image_pull_policy = "IfNotPresent"
 
           port {
@@ -57,9 +57,9 @@ resource "kubernetes_deployment" "backend" {
               port = 8000
             }
             initial_delay_seconds = 10
-            period_seconds = 10
-            timeout_seconds = 5
-            failure_threshold = 3
+            period_seconds        = 10
+            timeout_seconds       = 5
+            failure_threshold     = 3
           }
 
           readiness_probe {
@@ -68,9 +68,9 @@ resource "kubernetes_deployment" "backend" {
               port = 8000
             }
             initial_delay_seconds = 5
-            period_seconds = 5
-            timeout_seconds = 3
-            failure_threshold = 3
+            period_seconds        = 5
+            timeout_seconds       = 3
+            failure_threshold     = 3
           }
 
           lifecycle {
@@ -84,11 +84,11 @@ resource "kubernetes_deployment" "backend" {
           resources {
             requests = {
               memory = "128Mi"
-              cpu = "100m"
+              cpu    = "100m"
             }
             limits = {
               memory = "512Mi"
-              cpu = "500m"
+              cpu    = "500m"
             }
           }
 
@@ -97,7 +97,7 @@ resource "kubernetes_deployment" "backend" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "OPENAI_API_KEY"
+                key  = "OPENAI_API_KEY"
               }
             }
           }
@@ -107,7 +107,7 @@ resource "kubernetes_deployment" "backend" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "MONGO_URI"
+                key  = "MONGO_URI"
               }
             }
           }
@@ -117,18 +117,18 @@ resource "kubernetes_deployment" "backend" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "MONGO_DB"
+                key  = "MONGO_DB"
               }
             }
           }
 
           env {
-            name = "REDIS_URL"
+            name  = "REDIS_URL"
             value = var.redis_url
           }
 
           env {
-            name = "LOG_LEVEL"
+            name  = "LOG_LEVEL"
             value = var.log_level
           }
         }
@@ -139,19 +139,19 @@ resource "kubernetes_deployment" "backend" {
 
 resource "kubernetes_service" "backend" {
   metadata {
-    name = "llm-backend-canary-svc"
+    name      = "llm-backend-canary-svc"
     namespace = var.namespace
   }
 
   spec {
     selector = {
-      app = "llm-backend"
+      app     = "llm-backend"
       version = "canary"
     }
 
     port {
-      protocol = "TCP"
-      port = var.backend_service_port
+      protocol    = "TCP"
+      port        = var.backend_service_port
       target_port = 8000
     }
 
