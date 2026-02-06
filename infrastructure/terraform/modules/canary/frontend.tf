@@ -43,7 +43,7 @@ resource "kubernetes_deployment" "frontend" {
         termination_grace_period_seconds = 30
 
         container {
-          name = "llm-frontend"
+          name              = "llm-frontend"
           image             = "${var.frontend_image_name}:${var.frontend_image_tag}"
           image_pull_policy = "IfNotPresent"
 

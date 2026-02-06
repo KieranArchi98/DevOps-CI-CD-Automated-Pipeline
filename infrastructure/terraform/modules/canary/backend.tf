@@ -43,7 +43,7 @@ resource "kubernetes_deployment" "backend" {
         termination_grace_period_seconds = 30
 
         container {
-          name = "llm-backend"
+          name              = "llm-backend"
           image             = "${var.backend_image_name}:${var.backend_image_tag}"
           image_pull_policy = "IfNotPresent"
 

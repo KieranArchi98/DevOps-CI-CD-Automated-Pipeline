@@ -43,7 +43,7 @@ resource "kubernetes_deployment" "this" {
         termination_grace_period_seconds = 30
 
         container {
-          name = var.app_label
+          name              = var.app_label
           image             = "${var.image_name}:${var.image_tag}"
           image_pull_policy = "IfNotPresent"
 

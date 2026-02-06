@@ -158,7 +158,7 @@ export default function Home() {
   }
 
   async function handleSendMessage(content: string) {
-    const optimisticMsg = {
+    const optimisticMsg: ChatMessage = {
       id: `local-${Date.now()}`,
       role: 'user',
       content,
