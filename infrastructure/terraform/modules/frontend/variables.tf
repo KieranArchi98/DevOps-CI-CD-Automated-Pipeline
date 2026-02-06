@@ -3,22 +3,22 @@ variable "namespace" {
 }
 
 variable "deployment_name" {
-  type    = string
+  type = string
   default = "llm-frontend"
 }
 
 variable "service_name" {
-  type    = string
+  type = string
   default = "llm-frontend"
 }
 
 variable "app_label" {
-  type    = string
+  type = string
   default = "llm-frontend"
 }
 
 variable "version_label" {
-  type    = string
+  type = string
   default = "stable"
 }
 
@@ -31,21 +31,21 @@ variable "image_tag" {
 }
 
 variable "replicas" {
-  type    = number
+  type = number
   default = 2
 }
 
 variable "service_type" {
-  type    = string
+  type = string
   default = "LoadBalancer"
 }
 
 variable "service_port" {
-  type    = number
+  type = number
   default = 3000
 }
 
 variable "target_port" {
-  type    = number
+  type = number
   default = 80
 }

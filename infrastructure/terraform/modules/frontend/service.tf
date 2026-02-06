@@ -1,18 +1,18 @@
 resource "kubernetes_service" "this" {
   metadata {
-    name      = var.service_name
+    name = var.service_name
     namespace = var.namespace
   }
 
   spec {
     selector = {
-      app     = var.app_label
+      app = var.app_label
       version = var.version_label
     }
 
     port {
-      protocol    = "TCP"
-      port        = var.service_port
+      protocol = "TCP"
+      port = var.service_port
       target_port = var.target_port
     }
 

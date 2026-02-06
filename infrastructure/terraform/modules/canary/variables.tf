@@ -19,12 +19,12 @@ variable "frontend_image_tag" {
 }
 
 variable "backend_replicas" {
-  type    = number
+  type = number
   default = 1
 }
 
 variable "frontend_replicas" {
-  type    = number
+  type = number
   default = 1
 }
 
@@ -33,26 +33,26 @@ variable "secret_name" {
 }
 
 variable "redis_url" {
-  type    = string
+  type = string
   default = "redis://redis:6379/0"
 }
 
 variable "log_level" {
-  type    = string
+  type = string
   default = "INFO"
 }
 
 variable "backend_service_port" {
-  type    = number
+  type = number
   default = 8000
 }
 
 variable "frontend_service_port" {
-  type    = number
+  type = number
   default = 80
 }
 
 variable "frontend_target_port" {
-  type    = number
+  type = number
   default = 80
 }
