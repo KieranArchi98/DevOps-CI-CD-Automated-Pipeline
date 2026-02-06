@@ -20,6 +20,13 @@ type Conversation = {
   [key: string]: any;
 };
 
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string | Date;
+};
+
 const DUMMY_USER_ID = 'user1';
 const DRAFT_ID = 'draft-conversation';
 
@@ -42,7 +49,7 @@ const isDefaultTitle = (title: string) => {
 export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConv, setCurrentConv] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isInitialView, setIsInitialView] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -75,9 +82,9 @@ export default function Home() {
       const mapped = await Promise.all(
         data.map(async (conv: any) => {
           const id = conv.id || conv._id;
-          let msgs: any[] = [];
+          let msgs: ChatMessage[] = [];
           try {
-            msgs = await getMessages(id);
+            msgs = (await getMessages(id)) as ChatMessage[];
           } catch {
             msgs = [];
           }
@@ -134,7 +141,7 @@ export default function Home() {
     setIsInitialView(false);
     setMsgLoading(true);
     try {
-      const msgs = await getMessages(conv.id || conv._id);
+      const msgs = (await getMessages(conv.id || conv._id)) as ChatMessage[];
       setMessages(msgs);
     } catch (e: any) {
       setError(e.message);
@@ -175,7 +182,7 @@ export default function Home() {
         createdId = normalized.id;
         setCurrentConv(normalized);
         await chatWithLLM(normalized.id, DUMMY_USER_ID, content);
-        const msgs = await getMessages(normalized.id);
+        const msgs = (await getMessages(normalized.id)) as ChatMessage[];
         setMessages(msgs);
         await fetchConversations();
       } catch (e: any) {
@@ -204,7 +211,7 @@ export default function Home() {
     setMsgLoading(true);
     try {
       await chatWithLLM(convId, DUMMY_USER_ID, content);
-      const msgs = await getMessages(convId);
+      const msgs = (await getMessages(convId)) as ChatMessage[];
       setMessages(msgs);
       await fetchConversations();
     } catch (e: any) {
@@ -264,7 +271,16 @@ export default function Home() {
             />
           ) : (
             <ChatArea
-              chat={currentConv ? { ...currentConv, messages } : undefined}
+              chat={
+                currentConv && (currentConv.id || currentConv._id)
+                  ? {
+                      id: currentConv.id || currentConv._id,
+                      title: currentConv.title || 'new conversation',
+                      messages,
+                      lastMessage: currentConv.lastMessage,
+                    }
+                  : undefined
+              }
               onSendMessage={handleSendMessage}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               loading={msgLoading}

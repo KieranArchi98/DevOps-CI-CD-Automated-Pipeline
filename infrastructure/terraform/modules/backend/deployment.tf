@@ -1,9 +1,9 @@
 resource "kubernetes_deployment" "this" {
   metadata {
-    name = var.deployment_name
+    name      = var.deployment_name
     namespace = var.namespace
     labels = {
-      app = var.app_label
+      app     = var.app_label
       version = var.version_label
     }
   }
@@ -14,14 +14,14 @@ resource "kubernetes_deployment" "this" {
     strategy {
       type = "RollingUpdate"
       rolling_update {
-        max_surge = 1
+        max_surge       = 1
         max_unavailable = 1
       }
     }
 
     selector {
       match_labels = {
-        app = var.app_label
+        app     = var.app_label
         version = var.version_label
       }
     }
@@ -29,7 +29,7 @@ resource "kubernetes_deployment" "this" {
     template {
       metadata {
         labels = {
-          app = var.app_label
+          app     = var.app_label
           version = var.version_label
         }
         annotations = {
@@ -57,9 +57,9 @@ resource "kubernetes_deployment" "this" {
               port = 8000
             }
             initial_delay_seconds = 10
-            period_seconds = 10
-            timeout_seconds = 5
-            failure_threshold = 3
+            period_seconds        = 10
+            timeout_seconds       = 5
+            failure_threshold     = 3
           }
 
           readiness_probe {
@@ -68,9 +68,9 @@ resource "kubernetes_deployment" "this" {
               port = 8000
             }
             initial_delay_seconds = 5
-            period_seconds = 5
-            timeout_seconds = 3
-            failure_threshold = 3
+            period_seconds        = 5
+            timeout_seconds       = 3
+            failure_threshold     = 3
           }
 
           lifecycle {
@@ -84,11 +84,11 @@ resource "kubernetes_deployment" "this" {
           resources {
             requests = {
               memory = "128Mi"
-              cpu = "100m"
+              cpu    = "100m"
             }
             limits = {
               memory = "512Mi"
-              cpu = "500m"
+              cpu    = "500m"
             }
           }
 
@@ -97,7 +97,7 @@ resource "kubernetes_deployment" "this" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "OPENAI_API_KEY"
+                key  = "OPENAI_API_KEY"
               }
             }
           }
@@ -107,7 +107,7 @@ resource "kubernetes_deployment" "this" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "MONGO_URI"
+                key  = "MONGO_URI"
               }
             }
           }
@@ -117,18 +117,18 @@ resource "kubernetes_deployment" "this" {
             value_from {
               secret_key_ref {
                 name = var.secret_name
-                key = "MONGO_DB"
+                key  = "MONGO_DB"
               }
             }
           }
 
           env {
-            name = "REDIS_URL"
+            name  = "REDIS_URL"
             value = var.redis_url
           }
 
           env {
-            name = "LOG_LEVEL"
+            name  = "LOG_LEVEL"
             value = var.log_level
           }
         }
