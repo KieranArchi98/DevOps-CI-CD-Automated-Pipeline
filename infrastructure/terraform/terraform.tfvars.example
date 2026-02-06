@@ -1,12 +1,12 @@
 # Required secrets (do not commit real values)
 openai_api_key = "REPLACE_ME"
-mongo_uri      = "mongodb://user:pass@host:27017"
-mongo_db       = "genesis"
+mongo_uri = "mongodb://user:pass@host:27017"
+mongo_db = "genesis"
 
 # Optional overrides
-backend_image_name        = "genesis-backend"
-frontend_image_name       = "genesis-frontend"
-backend_image_tag_stable  = "stable"
+backend_image_name = "genesis-backend"
+frontend_image_name = "genesis-frontend"
+backend_image_tag_stable = "stable"
 frontend_image_tag_stable = "stable"
-backend_image_tag_canary  = "canary"
+backend_image_tag_canary = "canary"
 frontend_image_tag_canary = "canary"

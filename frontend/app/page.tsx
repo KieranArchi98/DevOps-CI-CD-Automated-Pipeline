@@ -193,12 +193,18 @@ export default function Home() {
       return;
     }
 
+    const convId = currentConv?.id ?? currentConv?._id;
+    if (!convId) {
+      setError('Conversation ID is missing.');
+      return;
+    }
+
     const previousMessages = messages;
     setMessages(prev => [...prev, optimisticMsg]);
     setMsgLoading(true);
     try {
-      await chatWithLLM(currentConv.id || currentConv._id, DUMMY_USER_ID, content);
-      const msgs = await getMessages(currentConv.id || currentConv._id);
+      await chatWithLLM(convId, DUMMY_USER_ID, content);
+      const msgs = await getMessages(convId);
       setMessages(msgs);
       await fetchConversations();
     } catch (e: any) {
