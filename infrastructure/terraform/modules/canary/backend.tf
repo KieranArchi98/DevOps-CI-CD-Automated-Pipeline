@@ -34,8 +34,8 @@ resource "kubernetes_deployment" "backend" {
         }
         annotations = {
           "prometheus.io/scrape" = "true"
-          "prometheus.io/port" = "8000"
-          "prometheus.io/path" = "/metrics"
+          "prometheus.io/port"   = "8000"
+          "prometheus.io/path"   = "/metrics"
         }
       }
 
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "backend" {
 
         container {
           name = "llm-backend"
-          image = "${var.backend_image_name}:${var.backend_image_tag}"
+          image             = "${var.backend_image_name}:${var.backend_image_tag}"
           image_pull_policy = "IfNotPresent"
 
           port {

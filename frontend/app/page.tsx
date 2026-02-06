@@ -25,6 +25,7 @@ type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string | Date;
+  created_at?: string | Date;
 };
 
 const DUMMY_USER_ID = 'user1';

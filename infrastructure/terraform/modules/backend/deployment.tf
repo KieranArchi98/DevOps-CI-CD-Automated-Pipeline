@@ -34,8 +34,8 @@ resource "kubernetes_deployment" "this" {
         }
         annotations = {
           "prometheus.io/scrape" = "true"
-          "prometheus.io/port" = "8000"
-          "prometheus.io/path" = "/metrics"
+          "prometheus.io/port"   = "8000"
+          "prometheus.io/path"   = "/metrics"
         }
       }
 
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "this" {
 
         container {
           name = var.app_label
-          image = "${var.image_name}:${var.image_tag}"
+          image             = "${var.image_name}:${var.image_tag}"
           image_pull_policy = "IfNotPresent"
 
           port {

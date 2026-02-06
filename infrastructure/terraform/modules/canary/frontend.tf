@@ -34,8 +34,8 @@ resource "kubernetes_deployment" "frontend" {
         }
         annotations = {
           "prometheus.io/scrape" = "true"
-          "prometheus.io/port" = "80"
-          "prometheus.io/path" = "/metrics"
+          "prometheus.io/port"   = "80"
+          "prometheus.io/path"   = "/metrics"
         }
       }
 
@@ -44,7 +44,7 @@ resource "kubernetes_deployment" "frontend" {
 
         container {
           name = "llm-frontend"
-          image = "${var.frontend_image_name}:${var.frontend_image_tag}"
+          image             = "${var.frontend_image_name}:${var.frontend_image_tag}"
           image_pull_policy = "IfNotPresent"
 
           port {
