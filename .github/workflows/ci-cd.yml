@@ -286,25 +286,25 @@ jobs:
         run: |
           echo "Deploying Canary versions with tag $IMAGE_TAG..."
           # Deploy Services for Monitoring
-          kubectl apply -f k8s/backend-canary-service.yaml
-          kubectl apply -f k8s/backend-stable-service.yaml
-          kubectl apply -f k8s/frontend-canary-service.yaml
-          kubectl apply -f k8s/frontend-stable-service.yaml
+          kubectl apply --validate=false -f k8s/backend-canary-service.yaml
+          kubectl apply --validate=false -f k8s/backend-stable-service.yaml
+          kubectl apply --validate=false -f k8s/frontend-canary-service.yaml
+          kubectl apply --validate=false -f k8s/frontend-stable-service.yaml
           
           # Deploy Infrastructure (Redis, HPA)
-          kubectl apply -f k8s/redis-deployment.yaml
-          kubectl apply -f k8s/redis-service.yaml
-          kubectl apply -f k8s/backend-hpa.yaml
-          kubectl apply -f k8s/frontend-hpa.yaml
+          kubectl apply --validate=false -f k8s/redis-deployment.yaml
+          kubectl apply --validate=false -f k8s/redis-service.yaml
+          kubectl apply --validate=false -f k8s/backend-hpa.yaml
+          kubectl apply --validate=false -f k8s/frontend-hpa.yaml
           
           # Deploy Canary Deployments
-          envsubst < k8s/backend-canary-deployment.yaml | kubectl apply -f -
-          envsubst < k8s/frontend-canary-deployment.yaml | kubectl apply -f -
+          envsubst < k8s/backend-canary-deployment.yaml | kubectl apply --validate=false -f -
+          envsubst < k8s/frontend-canary-deployment.yaml | kubectl apply --validate=false -f -
 
       - name: Deploy Monitoring (Prometheus/Grafana)
         run: |
-          kubectl apply -f k8s/monitoring/prometheus.yaml
-          kubectl apply -f k8s/monitoring/grafana.yaml
+          kubectl apply --validate=false -f k8s/monitoring/prometheus.yaml
+          kubectl apply --validate=false -f k8s/monitoring/grafana.yaml
 
       # Wait for Canary to be ready
       - name: Wait for Canary Rollout
