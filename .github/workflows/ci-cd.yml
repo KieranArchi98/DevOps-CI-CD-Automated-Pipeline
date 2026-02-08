@@ -72,7 +72,7 @@ jobs:
       - uses: actions/setup-node@v6.1.0
         with:
           node-version: "18"
-      - uses: docker/setup-buildx-action@v3.10.0
+      - uses: docker/setup-buildx-action@v3.12.0
 
       # Backend Tests
       - run: |
@@ -203,7 +203,7 @@ jobs:
       image_tag: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v6.0.1
-      - uses: docker/setup-buildx-action@v3.10.0
+      - uses: docker/setup-buildx-action@v3.12.0
       - uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
