@@ -29,8 +29,8 @@ jobs:
   lint-backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6.1.0
         with:
           python-version: "3.11"
       - run: pip install flake8 black isort
@@ -47,8 +47,8 @@ jobs:
   lint-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-node@v6.1.0
         with:
           node-version: "18"
       - run: |
@@ -65,14 +65,14 @@ jobs:
     needs: [lint-backend, lint-frontend]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v6.0.1
+      - uses: actions/setup-python@v6.1.0
         with:
           python-version: "3.11"
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6.1.0
         with:
           node-version: "18"
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3.10.0
 
       # Backend Tests
       - run: |
@@ -101,17 +101,21 @@ jobs:
           docker tag ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:ci genesis-frontend:ci || true
 
       # Vulnerability Scanning
-      - uses: aquasecurity/trivy-action@master
+      - uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: "genesis-backend:ci"
+          scanners: "vuln"
+          version: "v0.68.2"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "HIGH,CRITICAL"
-      - uses: aquasecurity/trivy-action@master
+      - uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: "genesis-frontend:ci"
+          scanners: "vuln"
+          version: "v0.68.2"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
@@ -126,8 +130,8 @@ jobs:
       TF_VAR_mongo_db: "genesis"
       TF_VAR_kubeconfig_path: "${{ github.workspace }}/.kube/config"
     steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v6.0.1
+      - uses: hashicorp/setup-terraform@v3.1.2
       - name: Prepare dummy kubeconfig
         run: |
           mkdir -p ${{ github.workspace }}/.kube
@@ -175,8 +179,8 @@ jobs:
       TF_VAR_mongo_db: ${{ secrets.MONGO_DB }}
       TF_VAR_kubeconfig_path: "${{ github.workspace }}/.kube/config"
     steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v6.0.1
+      - uses: hashicorp/setup-terraform@v3.1.2
       - name: Set Kubeconfig
         run: |
           mkdir -p ${{ github.workspace }}/.kube
@@ -198,9 +202,9 @@ jobs:
       frontend_image: ${{ steps.meta-frontend.outputs.tags }}
       image_tag: ${{ github.sha }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v6.0.1
+      - uses: docker/setup-buildx-action@v3.10.0
+      - uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -208,7 +212,7 @@ jobs:
 
       - name: Docker meta for backend
         id: meta-backend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v5.9.0
         with:
           images: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend
           tags: |
@@ -217,21 +221,21 @@ jobs:
 
       - name: Docker meta for frontend
         id: meta-frontend
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v5.9.0
         with:
           images: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend
           tags: |
             type=sha,prefix=
             type=raw,value=latest
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6.18.0
         with:
           context: ./backend
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6.18.0
         with:
           context: ./frontend
           push: true
@@ -257,10 +261,10 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GF_SECURITY_ADMIN_PASSWORD: ${{ secrets.GF_SECURITY_ADMIN_PASSWORD }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6.0.1
 
       - name: Set up Kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4.0.1
         with:
           version: 'latest'
 
@@ -337,10 +341,10 @@ jobs:
     environment:
       name: production
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6.0.1
 
       - name: Set up Kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4.0.1
         with:
           version: 'latest'
 
@@ -386,10 +390,10 @@ jobs:
     environment:
       name: production
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6.0.1
 
       - name: Set up Kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4.0.1
         with:
           version: 'latest'
 

@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip, setuptools, wheel to fix jaraco.context vuln
-RUN pip install --upgrade pip setuptools wheel
+# Upgrade pip, setuptools, wheel to fix known vulns
+RUN pip install --upgrade pip setuptools "wheel>=0.46.2"
 
 # Copy dependency file and install Python dependencies
 COPY requirements.txt .
@@ -36,10 +36,14 @@ RUN find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'jaraco.conte
 
 # Reinstall setuptools cleanly to avoid any stale vendored files
 RUN pip uninstall -y setuptools || true
-RUN pip install --upgrade --force-reinstall setuptools wheel
+RUN pip install --upgrade --force-reinstall setuptools "wheel>=0.46.2"
 
 # Force-install safe jaraco.context
 RUN pip install --upgrade --force-reinstall "jaraco.context>=6.1.0"
+
+# Remove any stale vulnerable wheel metadata that may remain
+RUN rm -rf /usr/local/lib/python3.11/site-packages/wheel-0.45.1.dist-info || true \
+ && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'wheel-0.45.1.dist-info' -exec rm -rf {} + || true
 
 # -------- Final image --------
 FROM base AS final
@@ -49,10 +53,12 @@ COPY --from=dependencies /usr/local /usr/local
 
 # Extra cleanup in final image: remove any vendored/old jaraco artifacts left inside setuptools
 # and force-reinstall safe packages to ensure Trivy will not find the vulnerable metadata.
-RUN pip install --upgrade --force-reinstall "jaraco.context>=6.1.0" wheel \
+RUN pip install --upgrade --force-reinstall "jaraco.context>=6.1.0" "wheel>=0.46.2" \
  && rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco* || true \
  && rm -rf /usr/local/lib/python3.11/site-packages/setuptools/_vendor/jaraco.context-5.3.0.dist-info || true \
- && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'jaraco.context*' -exec rm -rf {} + || true
+ && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'jaraco.context*' -exec rm -rf {} + || true \
+ && rm -rf /usr/local/lib/python3.11/site-packages/wheel-0.45.1.dist-info || true \
+ && find /usr/local/lib/python3.11/site-packages -maxdepth 3 -name 'wheel-0.45.1.dist-info' -exec rm -rf {} + || true
 
 # Copy application code
 COPY app ./app
