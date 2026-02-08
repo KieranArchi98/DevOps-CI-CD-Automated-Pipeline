@@ -13,11 +13,19 @@ foreach ($file in $manifests) {
         # Find the line index of the image
         for ($i=0; $i -lt $content.Length; $i++) {
             if ($content[$i] -match "image: genesis-") {
-                # Insert imagePullPolicy on the next line
-                $newContent = $content[0..$i]
-                $newContent += "          imagePullPolicy: IfNotPresent"
-                $newContent += $content[($i+1)..($content.Length-1)]
-                $content = $newContent
+                $nextIndex = $i + 1
+                $hasPullPolicy = $false
+                if ($nextIndex -lt $content.Length) {
+                    $hasPullPolicy = $content[$nextIndex] -match "imagePullPolicy:"
+                }
+
+                if (-not $hasPullPolicy) {
+                    # Insert imagePullPolicy on the next line
+                    $newContent = $content[0..$i]
+                    $newContent += "          imagePullPolicy: IfNotPresent"
+                    $newContent += $content[($i+1)..($content.Length-1)]
+                    $content = $newContent
+                }
                 break
             }
         }

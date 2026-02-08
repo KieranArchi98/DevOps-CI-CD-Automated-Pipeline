@@ -166,7 +166,10 @@ kubectl cluster-info
 docker build -t genesis-backend:latest ./backend
 docker build -t genesis-frontend:latest ./frontend
 ```
-   - Kubernetes manifests already use local images (`genesis-backend:latest` / `genesis-frontend:latest`), so no change is required.
+   - Switch manifests to local images:
+```powershell
+./scripts/use-local-images.ps1
+```
 
 3. Create Kubernetes secrets (reads `.env`):
 ```powershell
@@ -328,10 +331,9 @@ CI workflow:
 ---
 **Important Notes and Gotchas**
 
-- Kubernetes manifests in `./k8s` currently use local images (`genesis-backend:latest`, `genesis-frontend:latest`).
-  - For GHCR-based production deploys, update manifests to use GHCR images with `${IMAGE_TAG}`.
-  - The CD pipeline expects to inject `${IMAGE_TAG}` with `envsubst`.
-- `scripts/use-local-images.ps1` can force manifests to use local images.
+- Kubernetes manifests in `./k8s` use GHCR images with `${IMAGE_TAG}`.
+  - The CD pipeline injects `${IMAGE_TAG}` with `envsubst`.
+- `scripts/use-local-images.ps1` can force manifests to use local images for local clusters.
 - Docker Compose uses GHCR images by default.
 
 ---

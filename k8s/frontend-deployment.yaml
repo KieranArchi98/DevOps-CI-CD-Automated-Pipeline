@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: llm-frontend
-          image: genesis-frontend:latest
+          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

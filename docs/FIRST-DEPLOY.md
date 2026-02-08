@@ -81,25 +81,29 @@ kubectl cluster-info
 docker build -t genesis-backend:latest ./backend
 docker build -t genesis-frontend:latest ./frontend
 ```
+3. Switch manifests to local images:
+```powershell
+./scripts/use-local-images.ps1
+```
 
-3. Create K8s secrets from `.env`:
+4. Create K8s secrets from `.env`:
 ```powershell
 ./scripts/setup-and-verify-k8s.ps1
 ```
 
-4. Deploy to Kubernetes:
+5. Deploy to Kubernetes:
 ```powershell
 $env:IMAGE_TAG="latest"
 ./scripts/deploy-local-k8s.ps1
 ```
 
-5. Verify:
+6. Verify:
 ```powershell
 kubectl get pods
 kubectl get services
 ```
 
-6. Access services:
+7. Access services:
 ```powershell
 kubectl port-forward svc/llm-frontend 3000:3000
 kubectl port-forward svc/llm-backend 8000:8000

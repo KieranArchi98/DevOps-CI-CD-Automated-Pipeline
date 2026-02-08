@@ -27,6 +27,60 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Default CORS origins used in local development and Compose entries.
+BASE_PORTS = range(3000, 3011)
+DEFAULT_CORS_ORIGINS = [
+    *(f"http://localhost:{p}" for p in BASE_PORTS),
+    *(f"http://127.0.0.1:{p}" for p in BASE_PORTS),
+]
+
+
+def _parse_cors_origins(value: str | None) -> list[str]:
+    if not value:
+        return DEFAULT_CORS_ORIGINS
+    sanitized = [origin.strip() for origin in value.split(",") if origin.strip()]
+    return sanitized + [
+        origin for origin in DEFAULT_CORS_ORIGINS if origin not in sanitized
+    ]
+
+
+ALLOWED_CORS_ORIGINS = _parse_cors_origins(os.getenv("CORS_ORIGINS"))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def _select_cors_origin(request: Request) -> str | None:
+    origin = request.headers.get("origin")
+    if origin and origin in ALLOWED_CORS_ORIGINS:
+        return origin
+    return None
+
+
+def _apply_cors_headers(response: JSONResponse, request: Request) -> JSONResponse:
+    origin = _select_cors_origin(request)
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+    elif "Access-Control-Allow-Origin" not in response.headers:
+        response.headers["Access-Control-Allow-Origin"] = (
+            ALLOWED_CORS_ORIGINS[0] if ALLOWED_CORS_ORIGINS else "*"
+        )
+    response.headers.setdefault("Access-Control-Allow-Credentials", "true")
+    vary = response.headers.get("Vary")
+    if vary:
+        values = [v.strip() for v in vary.split(",")]
+        if "Origin" not in values:
+            response.headers["Vary"] = f"{vary}, Origin"
+    else:
+        response.headers["Vary"] = "Origin"
+    return response
+
+
 # Initialize graceful shutdown handler
 shutdown_handler = GracefulShutdown(shutdown_timeout=30)
 
@@ -186,14 +240,6 @@ async def metrics_middleware(request: Request, call_next):
     return response
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.include_router(api_router, prefix="/api")
 
 Instrumentator().instrument(app).expose(app)
@@ -221,7 +267,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
     # Return sanitized error response (no stack traces)
-    return JSONResponse(
+    response = JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": "Internal server error",
@@ -230,6 +276,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             "type": "internal_error",
         },
     )
+    return _apply_cors_headers(response, request)
 
 
 @app.get("/health")

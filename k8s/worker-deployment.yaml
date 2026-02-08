@@ -18,7 +18,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: llm-worker
-          image: genesis-backend:latest
+          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info"]
           lifecycle:

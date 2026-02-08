@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: llm-backend
-          image: genesis-backend:latest
+          image: ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:${IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

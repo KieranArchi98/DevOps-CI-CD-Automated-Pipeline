@@ -14,9 +14,10 @@ import {
 } from '../services/api';
 
 type Conversation = {
-  id?: string;
+  id: string;
   _id?: string;
   title?: string;
+  lastMessage?: Date;
   [key: string]: any;
 };
 
@@ -227,6 +228,16 @@ export default function Home() {
     await handleSendMessage(content);
   }
 
+  const canonicalChatId = currentConv?.id ?? currentConv?._id;
+  const chatPayload = canonicalChatId
+    ? {
+        id: canonicalChatId,
+        title: currentConv?.title || 'new conversation',
+        messages,
+        lastMessage: currentConv?.lastMessage,
+      }
+    : undefined;
+
   return (
     <main className="flex-1 h-screen min-h-screen" role="main">
       <div className="flex h-full relative overflow-hidden">
@@ -272,16 +283,7 @@ export default function Home() {
             />
           ) : (
             <ChatArea
-              chat={
-                currentConv && (currentConv.id || currentConv._id)
-                  ? {
-                      id: currentConv.id || currentConv._id,
-                      title: currentConv.title || 'new conversation',
-                      messages,
-                      lastMessage: currentConv.lastMessage,
-                    }
-                  : undefined
-              }
+              chat={chatPayload}
               onSendMessage={handleSendMessage}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               loading={msgLoading}

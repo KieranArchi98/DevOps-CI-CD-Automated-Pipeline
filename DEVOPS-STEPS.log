@@ -1,0 +1,30 @@
+# DevOps Command Log
+2026-02-07 14:05:55 | `docker-compose up -d` | Tried starting the local Compose stack from the GHCR images to exercise the dev pipeline.
+2026-02-07 14:06:20 | `docker build -t ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest ./backend` | Built the backend image locally to fill the missing GHCR tag (ran into Buildx lock).
+2026-02-07 14:07:00 | `docker tag ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:dev ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest` | Tagged the existing backend dev image so Compose could pull `:latest`.
+2026-02-07 14:07:05 | `docker tag ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:dev ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-frontend:latest` | Reused the frontend dev image for Compose after the official GHCR `:latest` was missing.
+2026-02-07 14:07:10 | `docker-compose down --remove-orphans` | Cleared stale containers/networks before retrying the compose stack.
+2026-02-07 14:13:27 | `docker-compose up -d` | Successfully started the Compose stack, including Prometheus/Grafana/Redis/backend/frontend.
+2026-02-07 14:16:00 | `kubectl config use-context docker-desktop` | Ensured `kubectl` targets the Docker Desktop cluster for the Kubernetes flow.
+2026-02-07 14:16:10 | `docker build -t genesis-backend:latest ./backend` | Built the backend image that K8s manifests reference (skipped GHCR).
+2026-02-07 14:18:00 | `docker build -t genesis-frontend:latest ./frontend` | Attempted to build the frontend image but hit the existing `chat` typing error in `app/page.tsx`.
+2026-02-07 14:22:00 | `./scripts/setup-and-verify-k8s.ps1` | Populated Kubernetes secrets and applied manifests as part of the scripted local K8s rollout.
+2026-02-07 14:24:00 | `kubectl apply -f k8s/monitoring/prometheus.yaml` | Deployed Prometheus to observe the cluster metrics referenced by the CD pipeline.
+2026-02-07 14:24:30 | `kubectl apply -f k8s/monitoring/grafana.yaml` | Deployed Grafana for dashboarding the Prometheus data.
+2026-02-07 14:25:00 | `$env:IMAGE_TAG="latest"; ./scripts/deploy-local-k8s.ps1` | Triggered the scripted local K8s deployment (stable backend/frontend/worker) after image builds.
+2026-02-07 14:29:00 | `npm run build` (frontend) | Failed because `chatPayload.lastMessage` could be a string; drove the type-tightening fix.
+2026-02-07 14:32:00 | `npm run build` (frontend) | Re-ran after adjusting `Conversation`/`Chat` typing and the build completed successfully.
+2026-02-07 14:35:00 | `docker build -t genesis-backend:latest ./backend` | Rebuilt the local backend image so the expanded CORS whip can be deployed to Kubernetes.
+2026-02-07 14:37:00 | `$env:IMAGE_TAG="latest"; ./scripts/deploy-local-k8s.ps1` | Redeployed the K8s stack so the backend pods pick up the rebuilt image with the wider CORS origin list.
+2026-02-07 14:45:00 | `docker build -t genesis-backend:latest ./backend` | Rebuilt the backend again after moving the CORS middleware to the top of the stack.
+2026-02-07 14:45:30 | `docker tag genesis-backend:latest ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest` | Retagged the new backend build so docker-compose can use the updated image.
+2026-02-07 14:45:45 | `docker-compose up -d backend` | Recreated the Compose backend service so the container runs the latest CORS-enabled build.
+2026-02-07 14:46:10 | `$env:IMAGE_TAG="latest"; ./scripts/deploy-local-k8s.ps1` | Redeployed all Kubernetes workloads so the backend pods grab the latest image.
+2026-02-07 14:54:00 | `docker build -t genesis-backend:latest ./backend` | Rebuilt backend again after widening the allowed origin ports (3000‑3010) for CORS.
+2026-02-07 14:54:10 | `docker tag genesis-backend:latest ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest` | Retagged the rebuilt backend so Compose pulls the updated image.
+2026-02-07 14:54:15 | `docker-compose up -d backend` | Recreated the backend container so the Compose stack serves the new CORS config.
+2026-02-07 14:54:20 | `$env:IMAGE_TAG="latest"; ./scripts/deploy-local-k8s.ps1` | Redeployed Kubernetes to rotate both backend replicas onto the refreshed image.
+2026-02-07 15:03:00 | `docker build -t genesis-backend:latest ./backend` | Rebuilt backend to include the new exception-aware CORS header helper.
+2026-02-07 15:03:15 | `docker tag genesis-backend:latest ghcr.io/kieranarchi98/devops-ci-cd-automated-pipeline-backend:latest` | Re-tagged the fresh backend build so Compose pulls the corrected image.
+2026-02-07 15:03:35 | `docker-compose up -d backend` | Replaced the Compose backend container so it serves the new CORS configuration.
+2026-02-07 15:03:40 | `$env:IMAGE_TAG="latest"; ./scripts/deploy-local-k8s.ps1` | Redeployed Kubernetes backend replicas to run the updated CORS image.

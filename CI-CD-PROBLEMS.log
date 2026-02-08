@@ -1,0 +1,28 @@
+CI/CD Pipeline Issues Log
+Date: 2026-02-08
+Environment: Windows (PowerShell), local Docker + Kubernetes
+
+Summary of Issues Found/Observed:
+1) K8s manifests did not use ${IMAGE_TAG} / GHCR images.
+   - Impact: CD steps using envsubst would not update images; canary/stable deploys would keep local images.
+   - Fix applied: Updated k8s deployment manifests to use GHCR images with ${IMAGE_TAG}.
+
+2) Deploy-canary job expects Prometheus service but does not deploy monitoring.
+   - Impact: `kubectl port-forward svc/prometheus-service` fails unless monitoring is pre-installed.
+   - Fix applied: Added Prometheus (monitoring) apply step to deploy-canary job.
+
+3) Prettier format check failed due to `out/` artifacts not ignored.
+   - Impact: `npm run format:check` fails locally and in CI when `out/` exists.
+   - Fix applied: Added `out` to frontend/.prettierignore.
+
+4) Frontend tests failed locally with `spawn EPERM` from jest-worker.
+   - Likely cause: Windows process spawn restrictions and Node 22/NPM 11 (repo expects Node 18).
+   - Status: Not fixed in code; recommend using Node 18 (as per docs/CI) or adding a Windows-only Jest runInBand/maxWorkers config.
+
+5) Black formatter hangs locally when formatting backend files.
+   - Impact: `black` never completes in this Windows environment.
+   - Status: Not fixed in code; suggest verifying with Node 18 + fresh Python env or running Black in WSL.
+
+6) Local K8s LoadBalancer for `llm-frontend` did not respond on NodePort.
+   - Impact: `http://localhost:<nodeport>` failed; port-forward works.
+   - Status: Not fixed; use `kubectl port-forward svc/llm-frontend 3000:3000` as in docs.
