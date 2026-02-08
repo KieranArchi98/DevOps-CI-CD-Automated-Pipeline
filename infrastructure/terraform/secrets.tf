@@ -6,10 +6,10 @@ resource "kubernetes_secret" "dev" {
 
   type = "Opaque"
 
-  string_data = {
-    OPENAI_API_KEY = var.openai_api_key
-    MONGO_URI      = var.mongo_uri
-    MONGO_DB       = var.mongo_db
+  data = {
+    OPENAI_API_KEY = base64encode(var.openai_api_key)
+    MONGO_URI      = base64encode(var.mongo_uri)
+    MONGO_DB       = base64encode(var.mongo_db)
   }
 }
 
@@ -21,9 +21,9 @@ resource "kubernetes_secret" "prod" {
 
   type = "Opaque"
 
-  string_data = {
-    OPENAI_API_KEY = var.openai_api_key
-    MONGO_URI      = var.mongo_uri
-    MONGO_DB       = var.mongo_db
+  data = {
+    OPENAI_API_KEY = base64encode(var.openai_api_key)
+    MONGO_URI      = base64encode(var.mongo_uri)
+    MONGO_DB       = base64encode(var.mongo_db)
   }
 }

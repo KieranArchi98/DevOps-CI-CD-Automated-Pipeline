@@ -16,6 +16,9 @@ RUN npm run build
 # -------- Production stage --------
 FROM nginx:stable-alpine AS final
 
+# Apply OS security updates to reduce Trivy findings
+RUN apk update && apk upgrade --no-cache
+
 # Copy build output from previous stage
 COPY --from=build /app/.next /usr/share/nginx/html
 

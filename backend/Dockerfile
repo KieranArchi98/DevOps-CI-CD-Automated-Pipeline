@@ -1,5 +1,5 @@
 # -------- Base image --------
-FROM python:3.11-slim AS base
+FROM python:3.11-slim-bookworm AS base
 
 # Prevent Python from writing pyc files
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -7,6 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
+
+# Apply OS security updates early to reduce Trivy findings
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # -------- Dependencies --------
 FROM base AS dependencies

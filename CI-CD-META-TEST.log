@@ -1,0 +1,85 @@
+CI/CD Meta Test Log
+Date: 2026-02-08 19:31:31
+Root: C:\Users\coco1\Desktop\Genesis-AI-Chatbot (DevOps)
+
+=== Tooling Checks ===
+PASS: Found command 'git' -> C:\Program Files\Git\cmd\git.exe
+PASS: Found command 'docker' -> C:\Program Files\Docker\Docker\resources\bin\docker.exe
+PASS: Found command 'kubectl' -> C:\ProgramData\chocolatey\bin\kubectl.exe
+PASS: Found command 'node' -> C:\Program Files\nodejs\node.exe
+PASS: Found command 'npm' -> C:\Program Files\nodejs\npm.ps1
+PASS: Found command 'python' -> C:\Users\coco1\AppData\Local\Programs\Python\Python311\python.exe
+PASS: Found command 'pytest' -> C:\Users\coco1\AppData\Local\Programs\Python\Python311\Scripts\pytest.exe
+PASS: Found command 'isort' -> C:\Users\coco1\AppData\Local\Programs\Python\Python311\Scripts\isort.exe
+PASS: Found command 'flake8' -> C:\Users\coco1\AppData\Local\Programs\Python\Python311\Scripts\flake8.exe
+PASS: Found command 'jq' -> C:\Users\coco1\AppData\Local\Microsoft\WinGet\Packages\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe\jq.exe
+PASS: Found command 'curl' -> 
+PASS: Found command 'bash' -> C:\WINDOWS\system32\bash.exe
+FAIL: Missing command 'bc'
+
+=== Repo Config Checks ===
+--- Workflow file present ---
+PASS: Workflow file present
+
+--- K8s manifests use GHCR + IMAGE_TAG ---
+PASS: K8s manifests use GHCR + IMAGE_TAG
+
+--- Docker Compose uses GHCR images ---
+PASS: Docker Compose uses GHCR images
+
+=== Local Quality Checks ===
+--- Backend isort ---
+PASS: Backend isort
+
+--- Backend flake8 ---
+PASS: Backend flake8
+
+--- Backend pytest ---
+PASS: Backend pytest
+
+--- Frontend lint ---
+PASS: Frontend lint
+
+--- Frontend format:check ---
+PASS: Frontend format:check
+
+--- Frontend tests (jest) ---
+PASS: Frontend tests (jest)
+
+=== Docker Compose Health ===
+--- Docker daemon reachable ---
+PASS: Docker daemon reachable
+
+--- Compose services running ---
+PASS: Compose services running
+
+--- Backend health (Compose) ---
+PASS: Backend health (Compose)
+
+--- Frontend root (Compose) ---
+PASS: Frontend root (Compose)
+
+--- Prometheus healthy (Compose) ---
+PASS: Prometheus healthy (Compose)
+
+--- Grafana health (Compose) ---
+PASS: Grafana health (Compose)
+
+=== Kubernetes Health ===
+--- K8s cluster-info ---
+PASS: K8s cluster-info
+
+--- K8s pods running ---
+PASS: K8s pods running
+
+--- K8s services present ---
+PASS: K8s services present
+
+--- Backend health via port-forward ---
+PASS: Backend health via port-forward
+
+--- Frontend root via port-forward ---
+PASS: Frontend root via port-forward
+
+=== Summary ===
+Meta test completed. Review failures above.
