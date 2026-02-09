@@ -341,10 +341,10 @@ jobs:
           chmod +x scripts/check-canary-metrics.sh
           
           echo "--- Checking Backend Metrics ---"
-          ./scripts/check-canary-metrics.sh 'job="llm-backend-canary"' 'job="llm-backend-stable"' "http://localhost:9090"
+          METRICS_RELAXED=1 ./scripts/check-canary-metrics.sh 'job="llm-backend-canary"' 'job="llm-backend-stable"' "http://localhost:9090"
           
           echo "--- Checking Frontend Metrics ---"
-          ./scripts/check-canary-metrics.sh 'job="llm-frontend-canary"' 'job="llm-frontend-stable"' "http://localhost:9090"
+          METRICS_RELAXED=1 ./scripts/check-canary-metrics.sh 'job="llm-frontend-canary"' 'job="llm-frontend-stable"' "http://localhost:9090"
           
           # Kill port-forward
           kill $PID

@@ -15,5 +15,11 @@ const customJestConfig = {
   },
 };
 
+if (process.platform === 'win32') {
+  // Avoid spawn EPERM on Windows by minimizing worker process creation.
+  customJestConfig.maxWorkers = 1;
+  customJestConfig.workerThreads = true;
+}
+
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 module.exports = createJestConfig(customJestConfig);
